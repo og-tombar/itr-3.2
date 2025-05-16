@@ -25,7 +25,7 @@ Real-Time Multiplayer Trivia Competition
 This document outlines the design for a real-time, socket-driven trivia game. Human players are matched in 30-second pools, play 10 adaptive-difficulty questions, can use special "helps," and chat live. Single players are paired with 1–3 simulated bots. Technologies:
 
 - **Backend**: Python + Flask-SocketIO
-- **Frontend**: React + Socket.IO client
+- **Frontend**: Next.js + Socket.IO client
 
 A software engineer can follow this doc to implement a maintainable, testable, and extensible system.
 
@@ -100,162 +100,75 @@ backend/
 
 ```text
 frontend/
-├── package.json
-└── src/
-    ├── index.tsx
-    ├── socket.ts
-    ├── App.tsx
-    ├── contexts/
-    │   ├── LobbyContext.tsx
-    │   └── GameContext.tsx
-    ├── services/
-    │   └── api.ts
-    ├── hooks/
-    │   └── useSocketEvent.ts
-    ├── components/
-    │   ├── Lobby/
-    │   ├── Game/
-    │   ├── Chat/
-    │   └── Shared/
-    └── styles/
+├── pages/
+│   ├── _app.tsx
+│   ├── _document.tsx
+│   └── index.tsx
+│   └── game/[gameId].tsx
+├── public/
+│   └── ... static assets ...
+├── src/
+│   ├── components/
+│   │   ├── Lobby/
+│   │   │   ├── Lobby.tsx
+│   │   │   └── Lobby.css
+│   │   ├── Game/
+│   │   │   ├── Question.tsx
+│   │   │   ├── Scoreboard.tsx
+│   │   │   └── Leaderboard.tsx
+│   │   ├── Chat/
+│   │   │   ├── ChatBox.tsx
+│   │   │   └── EmojiPicker.tsx
+│   │   └── Shared/
+│   │       ├── Timer.tsx
+│   │       └── Button.tsx
+│   ├── contexts/
+│   │   ├── LobbyContext.tsx
+│   │   └── GameContext.tsx
+│   ├── hooks/
+│   │   └── useSocketEvent.ts
+│   ├── services/
+│   │   └── api.ts
+│   ├── styles/
+│   │   └── globals.css
+│   └── socket.ts
+├── next.config.js
+└── package.json
 ```
 
-- **`socket.ts`**
+- **`pages/_app.tsx`**: Custom App component to initialize pages, global CSS, and contexts. Ideal place to initialize the Socket.IO client if needed globally.
+- **`pages/_document.tsx`**: Custom Document to augment `<html>` and `<body>` tags.
+- **`pages/index.tsx`**: Main landing page, likely containing the Lobby UI.
+- **`pages/game/[gameId].tsx`**: Dynamic route for the game interface, using Next.js file-system routing.
+- **`public/`**: Directory for static assets like images, fonts.
+- **`src/socket.ts`**
   - Exports a singleton `socket = io(…)` for reuse.
-- **`contexts/LobbyContext.tsx`**
+- **`src/contexts/LobbyContext.tsx`**
   - Tracks lobby state: joined players list, countdown timer.
-- **`contexts/GameContext.tsx`**
+- **`src/contexts/GameContext.tsx`**
   - Holds game state: current question, options, timers, score, helps, chat messages.
-- **`hooks/useSocketEvent.ts`**
+- **`src/hooks/useSocketEvent.ts`**
   - Custom hook: `useSocketEvent(event, handler)` handles subscribe/unsubscribe.
-- **`services/api.ts`**
-  - (Optional) REST calls for preloading question bank or user profiles.
-- **`components/Lobby/`**
-  - **`Lobby.tsx`**: UI to join and show waiting players + countdown.
-  - **`Lobby.css`**: Styles.
-- **`components/Game/`**
+- **`src/services/api.ts`**
+  - (Optional) REST calls for preloading question bank or user profiles. Can also be handled by Next.js data fetching methods (`getServerSideProps`, `getStaticProps`) if appropriate.
+- **`src/components/Lobby/`**
+  - **`Lobby.tsx`**: UI to join and show waiting players + countdown. Displayed via `pages/index.tsx`.
+- **`src/components/Game/`**
   - **`Question.tsx`**: Renders question text, options, help buttons. Triggers `socket.emit('submit_answer', …)` and `socket.emit('use_help', …)`.
   - **`Scoreboard.tsx`**: Live updating scores.
   - **`Leaderboard.tsx`**: Final results after 10 questions.
-- **`components/Chat/`**
+    (Components above are rendered within `pages/game/[gameId].tsx`)
+- **`src/components/Chat/`**
   - **`ChatBox.tsx`**: Message list + input.
   - **`EmojiPicker.tsx`**: Small emoji selection grid.
-- **`components/Shared/`**
+- **`src/components/Shared/`**
   - **`Timer.tsx`**: Countdown timer component.
   - **`Button.tsx`**: Styled button with loading/disabled states.
-
-## 4. Data Models
-
-### Player
-
-```typescript
-interface Player {
-  id: string;
-  name: string;
-  score: number;
-  helps: {
-    fiftyFifty: boolean;
-    callFriend: boolean;
-    doubleScore: boolean;
-  };
-}
-```
-
-### Question
-
-```typescript
-interface Question {
-  id: string;
-  text: string;
-  options: string[];
-  correctIndex: number;
-  difficulty: "easy" | "medium" | "hard";
-}
-```
-
-### Game
-
-```typescript
-interface Game {
-  id: string;
-  players: Player[];
-  currentQuestionIndex: number;
-  startTime: number; // timestamp
-  questionHistory: Array<{
-    question: Question;
-    responses: {
-      [playerId: string]: {
-        time: number;
-        correct: boolean;
-        usedDouble: boolean;
-      };
-    };
-  }>;
-}
-```
-
-## 5. Core Flows
-
-### Matchmaking & Game Start
-
-1.  Client emits `join_lobby` on connect.
-2.  `matchmaking.py` adds player to queue. If first player, start 30 s timer.
-3.  On timer expiry or min-players reached, call `game_manager.start_game(players)`.
-4.  `app.py` moves sockets into a Socket.IO "room" named after game ID.
-
-### Question Loop & Scoring
-
-For each of 10 questions:
-
-1.  `game_manager` calls `question_provider.get_next_question(prevCorrect)` per player.
-2.  Broadcast `new_question` with text, options, duration.
-3.  Start server‐side timer; collect `submit_answer` events with timestamps.
-4.  Compute points:
-    ```text
-    base = 1000
-    timeFactor = max(0, duration - (responseTime - sendTime))
-    points = floor(base * (timeFactor / duration))
-    if usedDouble: points *= 2
-    ```
-5.  Update each player's score.
-6.  After last question, broadcast `game_over` with sorted leaderboard.
-
-### Helps & LLM Integration
-
-- **50/50**: on client click, emit `use_help: { type: '5050' }`. Server responds with two removed indexes.
-- **Call a Friend**: emit `use_help: { type: 'callFriend' }`. Server calls `llm_client.get_call_friend_advice(question, options)` and returns hint.
-- **Double Score**: emit `use_help: { type: 'doubleScore' }`. Server flags player's next answer to double points.
-
-### Chat & Emoji
-
-- Clients emit `chat_message: { text }` or `emoji: { code }`.
-- `chat.py` rebroadcasts to room with sender metadata.
-
-## 6. Configuration
-
-`config.py` holds:
-
-```python
-MATCHMAKING_TIMEOUT = 30 # seconds
-QUESTION_DURATION = 15 # seconds per question
-BOT_MIN_DELAY = 1.0 # seconds
-BOT_MAX_DELAY = 5.0 # seconds
-BOT_ACCURACY_RANGE = (0.6, 0.9)
-LLM_API_KEY = 'your_llm_api_key_here' # Example: 'sk-...'
-```
-
-Environment variables override production credentials.
-
-## 7. Deployment & Scaling
-
-### Backend:
-
-- Containerize with Docker.
-- Use multiple worker processes behind a load-balancer with sticky sessions (or Redis adapter for Socket.IO).
 
 ### Frontend:
 
 - Build static bundle served by CDN.
+- Deploy as a Next.js application (e.g., via Vercel, or as a Node.js server).
 
 ### Persistence (future):
 
@@ -268,7 +181,7 @@ Environment variables override production credentials.
 - **Integration Tests**:
   - Spawn a test Socket.IO server; simulate clients joining, answering, and using helps.
 - **Frontend Tests**:
-  - Jest + React Testing Library; mock `socket.ts` to emit and receive events.
+  - Jest + React Testing Library; mock `src/socket.ts` to emit and receive events. Test Next.js specific features like routing and data fetching as needed.
 
 ## 9. Next Steps & Extensions
 
