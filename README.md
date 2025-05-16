@@ -100,14 +100,13 @@ backend/
 
 ```text
 frontend/
-├── pages/
-│   ├── _app.tsx
-│   ├── _document.tsx
-│   └── index.tsx
-│   └── game/[gameId].tsx
-├── public/
-│   └── ... static assets ...
 ├── src/
+│   ├── app/
+│   │   ├── layout.tsx            // Root layout (replaces _app.tsx + _document.tsx)
+│   │   ├── page.tsx              // Homepage (e.g., Lobby)
+│   │   └── game/
+│   │       └── [gameId]/
+│   │           └── page.tsx      // Dynamic game page
 │   ├── components/
 │   │   ├── Lobby/
 │   │   │   ├── Lobby.tsx
@@ -132,15 +131,16 @@ frontend/
 │   ├── styles/
 │   │   └── globals.css
 │   └── socket.ts
+├── public/
+│   └── ... static assets ...
 ├── next.config.js
 └── package.json
 ```
 
-- **`pages/_app.tsx`**: Custom App component to initialize pages, global CSS, and contexts. Ideal place to initialize the Socket.IO client if needed globally.
-- **`pages/_document.tsx`**: Custom Document to augment `<html>` and `<body>` tags.
-- **`pages/index.tsx`**: Main landing page, likely containing the Lobby UI.
-- **`pages/game/[gameId].tsx`**: Dynamic route for the game interface, using Next.js file-system routing.
-- **`public/`**: Directory for static assets like images, fonts.
+- **`src/app/layout.tsx`**: The root layout component that wraps all pages. Used for global structure, shared UI elements (like a navbar or footer if any), and initializing context providers or the Socket.IO client globally. Replaces the functionality of `pages/_app.tsx` and `pages/_document.tsx`.
+- **`src/app/page.tsx`**: The main landing page of the application. This will likely contain the Lobby UI where players join games.
+- **`src/app/game/[gameId]/page.tsx`**: A dynamic route for the game interface. Next.js file-system routing uses the folder structure within `app/` to define routes. `[gameId]` makes that part of the URL dynamic.
+- **`public/`**: Directory for static assets like images, fonts, etc., accessible from the root URL.
 - **`src/socket.ts`**
   - Exports a singleton `socket = io(…)` for reuse.
 - **`src/contexts/LobbyContext.tsx`**
@@ -150,14 +150,14 @@ frontend/
 - **`src/hooks/useSocketEvent.ts`**
   - Custom hook: `useSocketEvent(event, handler)` handles subscribe/unsubscribe.
 - **`src/services/api.ts`**
-  - (Optional) REST calls for preloading question bank or user profiles. Can also be handled by Next.js data fetching methods (`getServerSideProps`, `getStaticProps`) if appropriate.
+  - (Optional) REST calls for preloading question bank or user profiles. Can also be handled by Next.js Server Components or Route Handlers if appropriate.
 - **`src/components/Lobby/`**
-  - **`Lobby.tsx`**: UI to join and show waiting players + countdown. Displayed via `pages/index.tsx`.
+  - **`Lobby.tsx`**: UI to join and show waiting players + countdown. This component would be imported and used within `src/app/page.tsx`.
 - **`src/components/Game/`**
   - **`Question.tsx`**: Renders question text, options, help buttons. Triggers `socket.emit('submit_answer', …)` and `socket.emit('use_help', …)`.
   - **`Scoreboard.tsx`**: Live updating scores.
   - **`Leaderboard.tsx`**: Final results after 10 questions.
-    (Components above are rendered within `pages/game/[gameId].tsx`)
+    (These game-specific components would be imported and used within `src/app/game/[gameId]/page.tsx`.)
 - **`src/components/Chat/`**
   - **`ChatBox.tsx`**: Message list + input.
   - **`EmojiPicker.tsx`**: Small emoji selection grid.
