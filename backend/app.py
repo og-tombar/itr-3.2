@@ -8,15 +8,15 @@ from matchmaking import Lobby
 
 
 @dataclass
-class AppState:
-    """The state of the application."""
+class Context:
+    """The Context class holds the state of the application."""
     lobby: Lobby = Lobby()
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
-state = AppState()
+context = Context()
 
 
 @socketio.on('join_lobby')
@@ -28,10 +28,17 @@ def handle_join_lobby(_):
     """
     sid = request.sid
     print(f"[backend] join_lobby from {sid}")
-    state.lobby.add_player(sid)
-    update = state.lobby.get_update()
     join_room(Lobby.ROOM)
-    socketio.emit('lobby_update', update, room=Lobby.ROOM)
+    context.lobby.add_player(sid)
+    lobby_state = context.lobby.get_state()
+    socketio.emit('lobby_update', lobby_state.players)
+
+    if lobby_state.should_game_start:
+        print("[backend] starting game")
+        game_state = context.lobby.start_game()
+        for p in game_state.players:
+            join_room(game_state.id, sid=p)
+        socketio.emit('game_start', game_state.__dict__, room=game_state.id)
 
 
 if __name__ == '__main__':
