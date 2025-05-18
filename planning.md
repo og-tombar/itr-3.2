@@ -60,21 +60,33 @@
 
 ### Phase 2.2 — Timeout-Driven Game Creation
 
-**Goal:** Automatically initiate a game session when enough players have joined the lobby or after a set timeout period, and navigate the Next.js client to the game page.
+**Goal:** Automatically initiate a game session when enough players have joined the lobby or after a set timeout period, and navigate the Next.js client to the game page. This section reflects the current implementation using `backend/matchmaking.py`.
 
-**Tasks** (≈ 180 LOC)
+**Tasks** (≈ 180 LOC, including integration in the main server application)
 
-- Backend: In `matchmaking.py`, when the first player joins the lobby (and the queue was previously empty), start a configurable countdown timer (e.g., 30 seconds, from `config.py`).
-- Backend: If the timer expires or if a predefined number of players (e.g., ≥ 2) join the queue before the timer expires, `matchmaking.py` should trigger game creation. This involves selecting the players from the queue and calling a (yet-to-be-created) `game_manager.start_game(selected_players)` function.
-- Backend: Generate a unique game ID (e.g., using UUID). Create a new Socket.IO room named after this game ID and move the sockets of the selected players into this room. This isolates game-specific communication.
-- Backend: Emit a `game_started` event to all players who were moved into the game room. This event should include the `gameId` and potentially initial game state or player list.
-- Frontend: Listen for the `game_started` event. Upon receiving it, the UI should change to indicate that the game has begun. This will involve using the Next.js App Router's `useRouter` hook (from `next/navigation`) for navigation: `router.push('/game/' + gameId)`. This corresponds to a route structure like `src/app/game/[gameId]/page.tsx`.
+- Backend: The `Lobby` class in `matchmaking.py` manages players and a matchmaking timer.
+  - When the first player joins an empty lobby, `Lobby.add_player()` initiates a countdown timer (`Lobby.TIMEOUT_SECONDS`, currently a class constant).
+- Backend: Game creation is triggered under two conditions:
+  1.  **Sufficient Players Joined**:
+      - After a player joins, the main server application should call `Lobby.get_state()`.
+      - If `LobbyState.should_game_start` is true (i.e., `len(players) >= Lobby.MIN_PLAYERS`), the main server application should then call `Lobby.start_game()`.
+  2.  **Timer Expires**:
+      - If the lobby timer started by `Lobby.add_player()` expires, the `Lobby._on_timeout()` method will automatically call `Lobby.start_game()` if there are any players still in the lobby.
+      - `Lobby.start_game()` selects the players from the queue, generates a unique game ID (using UUID), clears the lobby's player list, and stops any active lobby timer. It returns a `GameState` object containing the `gameId` and `selected_players`.
+      - _Note_: When `_on_timeout` calls `start_game()`, the returned `GameState` is not directly passed to the main application thread. The main application would need to observe the lobby's state change (e.g., players cleared) to react or be enhanced with a callback mechanism for more direct notification.
+- Backend (Main Server Application, e.g., `app.py`):
+  - Upon obtaining `GameState` (either from calling `Lobby.start_game()` directly after checking `should_game_start`, or by detecting a game was started by timeout):
+    - Generate a unique game ID (this is done by `Lobby.start_game()` and is part of `GameState`).
+    - Create a new Socket.IO room named after the `GameState.id`.
+    - Move the sockets of the `GameState.players` into this new room. This isolates game-specific communication.
+    - Emit a `game_started` event to all players who were moved into the game room. This event should include the `gameId` (from `GameState.id`) and potentially the initial game state or player list.
+- Frontend: Listen for the `game_started` event. Upon receiving it, the UI should change to indicate that the game has begun, typically by navigating to a game-specific URL using the `gameId`. For example, using Next.js App Router's `useRouter` hook (from `next/navigation`): `router.push('/game/' + gameId)`. This corresponds to a route structure like `src/app/game/[gameId]/page.tsx`.
 
 **Validation:**
 
-- If one client joins, after 30 seconds (or configured timeout), they receive the `game_started` event and their UI transitions to a game view (e.g., navigating to `/game/some-id`).
-- If two or more clients join, they should receive the `game_started` event sooner than the timeout, and their UIs should transition.
-- Backend logs should show the matchmaking timer starting, players being added to a room, and the `game_started` event being emitted.
+- If one client joins, after `Lobby.TIMEOUT_SECONDS`, the `Lobby._on_timeout()` method should trigger `Lobby.start_game()`. The main server application should then detect this (e.g., by observing lobby state changes or through a future callback mechanism), create a Socket.IO room, and emit the `game_started` event. The client receives this event and their UI transitions to a game view (e.g., navigating to `/game/some-id`).
+- If `Lobby.MIN_PLAYERS` or more clients join, the main server application (after being notified of a player joining and then checking `Lobby.get_state().should_game_start`) should call `Lobby.start_game()`. The main server application then uses the returned `GameState` to create a Socket.IO room and emit the `game_started` event (this should happen sooner than the timeout). Client UIs should transition accordingly.
+- Backend logs (potentially in `matchmaking.py` for lobby actions and more detailed logs in the main server application for Socket.IO operations) should show the matchmaking timer starting, players being selected for a game, the game ID being generated, players being added to a room, and the `game_started` event being emitted.
 
 ## Milestone 3: Question Delivery & Basic UI
 
