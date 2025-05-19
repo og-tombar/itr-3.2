@@ -1,20 +1,20 @@
 """A simple in-memory lobby."""
 
-from threading import Timer
-
-from events import EventQueue, ServerEvent
+from events import EventQueue, LobbyUpdateData, ServerEvent
+from interval_timer import IntervalTimer
+from interval_timer.interval import Interval
 
 
 class Lobby:
     """A simple in-memory lobby."""
 
     ROOM = 'lobby'
-    TIMEOUT_SECONDS = 5
-    MIN_PLAYERS = 4
+    TIMEOUT_SECONDS = 30
+    MAX_PLAYERS = 4
 
     def __init__(self):
         self._players = set[str]()
-        self._timer: Timer | None = None
+        self._is_timer_active = False
 
     def add_player(self, sid: str) -> None:
         """Adds a player to the lobby.
@@ -23,11 +23,8 @@ class Lobby:
             sid (str): The sid of the player to add.
         """
         self._players.add(sid)
-        if not self._timer:
+        if not self._is_timer_active:
             self._start_timer()
-        should_game_start = len(self._players) >= Lobby.MIN_PLAYERS
-        if should_game_start:
-            self._on_start_game()
 
     def remove_player(self, sid: str) -> None:
         """Removes a player from the lobby.
@@ -35,9 +32,9 @@ class Lobby:
         Args:
             sid (str): The sid of the player to remove.
         """
-        self._players.remove(sid)
+        self._players.discard(sid)
         if not self._players:
-            self._stop_timer()
+            self._is_timer_active = False
 
     def get_players(self) -> list[str]:
         """Gets the players in the lobby.
@@ -45,34 +42,34 @@ class Lobby:
         Returns:
             list[str]: The players in the lobby.
         """
-        return list(self._players).copy()
+        return list(self._players)
 
     def clear(self) -> None:
         """Clears the lobby."""
+        self._is_timer_active = False
         self._players.clear()
-        self._stop_timer()
 
     def _start_timer(self) -> None:
         """Starts the timer."""
-        if self._timer:
-            self._timer.cancel()
-        self._timer = Timer(Lobby.TIMEOUT_SECONDS, self._on_timeout)
-        self._timer.start()
+        self._is_timer_active = True
+        while self._is_timer_active:
+            for interval in IntervalTimer(1, stop=Lobby.TIMEOUT_SECONDS):
+                if not self._is_timer_active:
+                    return
+                self._tick(interval)
 
-    def _stop_timer(self) -> None:
-        """Stops the timer."""
-        if self._timer:
-            self._timer.cancel()
-            self._timer = None
-
-    def _on_timeout(self) -> None:
-        """Called when the timer runs out."""
-        if self._players:
-            self._on_start_game()
-        else:
-            self._start_timer()
-
-    def _on_start_game(self) -> None:
-        """Called when the game starts."""
-        self._stop_timer()
-        EventQueue.put(ServerEvent.NEW_GAME)
+    def _tick(self, interval: Interval) -> None:
+        """Called when the timer ticks."""
+        time_remaining = Lobby.TIMEOUT_SECONDS - interval.time - 1
+        should_start_game = (
+            len(self._players) >= Lobby.MAX_PLAYERS
+            or (time_remaining <= 0 < len(self._players))
+        )
+        data = LobbyUpdateData(
+            players=list(self._players),
+            time_remaining=time_remaining,
+            should_start_game=should_start_game,
+        )
+        EventQueue.put(ServerEvent.LOBBY_UPDATE, data)
+        if should_start_game:
+            self._is_timer_active = False

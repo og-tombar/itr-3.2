@@ -1,6 +1,6 @@
 """Manages the app."""
 
-from events import EventQueue, ServerEvent
+from events import EventQueue, LobbyUpdateData, ServerEvent
 from flask import request
 from flask_socketio import SocketIO, join_room, leave_room
 from game_manager import GameManager
@@ -31,8 +31,9 @@ class AppManager:
     def consume_events(self):
         """Consumes events from the event queue."""
         while True:
-            event = EventQueue.get()
+            event, data = EventQueue.get()
             match event:
+                case ServerEvent.LOBBY_UPDATE: self._lobby_update(data)
                 case ServerEvent.NEW_GAME: self._new_game()
 
     def add_player(self):
@@ -40,16 +41,12 @@ class AppManager:
         print("[app_manager] add_player", request.sid)
         join_room(Lobby.ROOM)
         self._lobby.add_player(request.sid)
-        players = self._lobby.get_players()
-        self._sio.emit(ServerEvent.LOBBY_UPDATE, players)
 
     def remove_player(self):
         """Removes the player from the lobby."""
         print("[app_manager] remove_player", request.sid)
         leave_room(Lobby.ROOM)
         self._lobby.remove_player(request.sid)
-        players = self._lobby.get_players()
-        self._sio.emit(ServerEvent.LOBBY_UPDATE, players)
 
     def join_game(self, data: dict):
         """Joins the player to the game.
@@ -59,6 +56,16 @@ class AppManager:
         """
         print("[app_manager] join_game", request.sid, data)
         join_room(data['game_id'])
+
+    def _lobby_update(self, data: LobbyUpdateData):
+        """Emits a lobby update to the players.
+
+        Args:
+            data (LobbyUpdateData): The data to emit.
+        """
+        self._sio.emit(ServerEvent.LOBBY_UPDATE, data.__dict__)
+        if data.should_start_game:
+            self._new_game()
 
     def _new_game(self):
         """Creates a new game and emits the game id to the players."""
