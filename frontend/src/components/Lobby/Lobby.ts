@@ -2,35 +2,48 @@ import { useEffect, useState } from "react";
 import socket from "../../socket";
 import { useRouter } from "next/navigation";
 
-interface GameState {
-  id: string;
-  players: string[];
+enum ClientEvents {
+  JOIN_LOBBY = "join_lobby",
+  JOIN_GAME = "join_game",
+  TEST = "test",
+}
+
+enum ServerEvents {
+  LOBBY_UPDATE = "lobby_update",
+  NEW_GAME = "new_game",
+  TEST = "test",
 }
 
 export function useLobby() {
   const router = useRouter();
   const [players, setPlayers] = useState<string[]>([]);
 
-  const handleJoin = () => {
-    socket.emit("join_lobby", {});
+  const handleJoinLobby = () => {
+    socket.emit(ClientEvents.JOIN_LOBBY, {});
   };
 
   useEffect(() => {
-    socket.on("lobby_update", (players: string[]) => {
+    socket.on(ServerEvents.LOBBY_UPDATE, (players: string[]) => {
       console.log("[frontend] lobby_update", players);
       setPlayers(players);
     });
 
-    socket.on("game_start", (game: GameState) => {
-      console.log("[frontend] game_start", game);
-      router.push(`/game/${game.id}`);
+    socket.on(ServerEvents.NEW_GAME, (gameId: string) => {
+      console.log("[frontend] new_game", gameId);
+      socket.emit(ClientEvents.JOIN_GAME, { game_id: gameId });
+      router.push(`/game/${gameId}`);
+    });
+
+    socket.on(ServerEvents.TEST, (message: string) => {
+      console.log("[frontend] test", message);
     });
 
     return () => {
-      socket.off("lobby_update");
-      socket.off("game_start");
+      socket.off(ServerEvents.LOBBY_UPDATE);
+      socket.off(ServerEvents.NEW_GAME);
+      socket.off(ServerEvents.TEST);
     };
   }, [router]);
 
-  return { players, handleJoin };
+  return { players, handleJoinLobby };
 }

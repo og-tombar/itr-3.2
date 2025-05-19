@@ -6,368 +6,372 @@
 
 **Tasks** (≈ 70 LOC)
 
-- Create `backend/` folder with an empty `app.py` (for Flask) and `requirements.txt`.
-- Initialize a new Next.js project in `frontend/` using `npx create-next-app@latest --ts`. This will set up the basic file structure including an `app/` directory (which we will move into `src/app/`), `public/`, `next.config.js`, and `package.json`.
-- Organize the Next.js project to use a `src` directory: Move the `app/` directory to `src/app/`. Create `src/components/`, `src/contexts/`, `src/hooks/`, `src/services/`, `src/styles/` as needed for future organization.
-- Ensure `src/app/page.tsx` exists (this is the default homepage) and create a basic `src/app/layout.tsx` to wrap `page.tsx`.
-- Add a `README.md` at the root with clear, step-by-step instructions on how to install dependencies and run both the backend and frontend development servers.
+- Create `backend/` folder with initial Python files:
+  - `main.py`: Entry point for the Flask-SocketIO server
+  - `server.py`: Core server setup with Flask and SocketIO
+  - `app_manager.py`: Main application manager
+  - `lobby.py`: Lobby management
+  - `game_manager.py`: Game state management
+  - `events.py`: Event definitions and queue
+  - `questions.py`: Question management
+- Initialize a new Next.js project in `frontend/` using `npx create-next-app@latest --ts`
+- Organize the Next.js project to use a `src` directory structure
+- Add a `README.md` at the root with clear setup instructions
 
 **Validation:**
 
-- `pip install -r backend/requirements.txt` installs backend dependencies successfully.
-- `cd frontend && npm install` (or `yarn install`) installs frontend dependencies successfully.
-- The Python backend server (e.g., Flask development server) starts without errors.
-- The Next.js frontend development server (`npm run dev` or `yarn dev`) starts, and the basic `src/app/page.tsx` (wrapped by `src/app/layout.tsx`) is viewable in a browser.
+- Backend dependencies install successfully
+- Frontend dependencies install successfully
+- Both servers start without errors
+- Basic Next.js page is viewable in browser
 
 ### Phase 1.2 — Socket.IO Connection Test
 
-**Goal:** Implement a basic "ping-pong" exchange between the Next.js frontend (App Router) and the Flask-SocketIO backend to verify the real-time communication channel.
+**Goal:** Implement a basic "ping-pong" exchange between the Next.js frontend and the Flask-SocketIO backend.
 
 **Tasks** (≈ 100 LOC)
 
-- Install `flask-socketio` in `backend/requirements.txt` and `socket.io-client` in `frontend/package.json`.
-- In `backend/app.py`, initialize `SocketIO` with the Flask app. Implement a simple event handler for a custom `ping_event` that, upon receiving the event, emits a `pong_event` back to the client that sent it.
-- In the Next.js frontend, create `src/socket.ts` to initialize and export a singleton `socket.io-client` instance.
-- In `frontend/src/app/layout.tsx` (for global contexts/socket setup if desired) or more likely in `frontend/src/app/page.tsx` (or a client component imported into it), import the socket client. On component mount (e.g., using `useEffect` hook in a Client Component), establish a connection to the backend Socket.IO server and emit the `ping_event`.
-- Set up an event listener for `pong_event` on the frontend. When received, log a confirmation message to the browser console.
+- Backend: In `server.py`, initialize `SocketIO` with the Flask app
+- Backend: In `events.py`, define `ClientEvent` and `ServerEvent` enums for event names
+- Backend: In `app_manager.py`, implement basic event handling
+- Frontend: Create `src/socket.ts` to initialize and export a singleton `socket.io-client` instance
+- Frontend: In `src/app/page.tsx`, implement basic socket connection and event handling
 
 **Validation:**
 
-- The browser console on the Next.js page (`src/app/page.tsx`) shows the "pong" message received from the backend.
-- The backend server logs indicate that it received the "ping" event and sent the "pong" event.
-- Connection status (connect/disconnect events) can be optionally logged on both ends for clarity.
+- Socket connection is established successfully
+- Events are properly emitted and received
+- Connection status is logged appropriately
 
 ## Milestone 2: Lobby & Matchmaking
 
-### Phase 2.1 — `join_lobby` Event & Queue
+### Phase 2.1 — Lobby Management
 
-**Goal:** Allow users to actively join a server-side matchmaking queue and see feedback on the current lobby status from the Next.js App Router frontend.
+**Goal:** Implement the lobby system for players to join and wait for a game.
 
 **Tasks** (≈ 120 LOC)
 
-- Backend: Create `matchmaking.py`. This module will manage an in-memory list or dictionary to store `request.sid` (Socket.IO session ID) of players waiting in the lobby.
-- Backend: In `app.py`, expose a `join_lobby` Socket.IO event handler. When a client emits `join_lobby`, this handler will delegate to `matchmaking.py` to add the player's `sid` to the queue.
-- Backend: After adding a player, `matchmaking.py` should emit a `lobby_update` event back to all clients in the lobby (or at least the joining client), containing data like the current number of players in the queue and perhaps a list of player identifiers/names if available.
-- Frontend: In the Next.js root page (`src/app/page.tsx`), which will serve as the lobby, or by using a dedicated `src/components/Lobby/Lobby.tsx` client component imported into `src/app/page.tsx`, add a "Join Lobby" button.
-- Frontend: On clicking the button, emit the `join_lobby` event to the server.
-- Frontend: Listen for the `lobby_update` event. Upon receiving it, update the UI to display the current lobby size or other relevant information.
+- Backend: In `lobby.py`, implement the `Lobby` class with:
+  - `add_player(sid: str)`: Add player to lobby
+  - `remove_player(sid: str)`: Remove player from lobby
+  - `get_players()`: Get current lobby players
+  - `clear()`: Clear the lobby
+- Backend: In `events.py`, add `JOIN_LOBBY` and `LOBBY_UPDATE` events
+- Backend: In `server.py`, implement `handle_join_lobby` event handler
+- Backend: In `app_manager.py`, implement lobby management methods
+- Frontend: Create lobby UI component with join button
+- Frontend: Implement lobby state management and updates
 
 **Validation:**
 
-- Clicking the "Join Lobby" button on the Next.js page (`src/app/page.tsx`) results in the UI updating to show the new lobby size (e.g., "Players in lobby: 1").
-- Backend logs confirm reception of `join_lobby` and addition to the queue.
-- If multiple clients join, each should see the updated lobby size.
+- Players can join the lobby
+- Lobby updates are broadcast to all players
+- Player count is displayed correctly
 
-### Phase 2.2 — Timeout-Driven Game Creation
+### Phase 2.2 — Game Creation & Room Management
 
-**Goal:** Automatically initiate a game session when enough players have joined the lobby or after a set timeout period, and navigate the Next.js client to the game page. This section reflects the current implementation using `backend/matchmaking.py`.
+**Goal:** Implement automatic game creation when lobby conditions are met.
 
-**Tasks** (≈ 180 LOC, including integration in the main server application)
+**Tasks** (≈ 180 LOC)
 
-- Backend: The `Lobby` class in `matchmaking.py` manages players and a matchmaking timer.
-  - When the first player joins an empty lobby, `Lobby.add_player()` initiates a countdown timer (`Lobby.TIMEOUT_SECONDS`, currently a class constant).
-- Backend: Game creation is triggered under two conditions:
-  1.  **Sufficient Players Joined**:
-      - After a player joins, the main server application should call `Lobby.get_state()`.
-      - If `LobbyState.should_game_start` is true (i.e., `len(players) >= Lobby.MIN_PLAYERS`), the main server application should then call `Lobby.start_game()`.
-  2.  **Timer Expires**:
-      - If the lobby timer started by `Lobby.add_player()` expires, the `Lobby._on_timeout()` method will automatically call `Lobby.start_game()` if there are any players still in the lobby.
-      - `Lobby.start_game()` selects the players from the queue, generates a unique game ID (using UUID), clears the lobby's player list, and stops any active lobby timer. It returns a `GameState` object containing the `gameId` and `selected_players`.
-      - _Note_: When `_on_timeout` calls `start_game()`, the returned `GameState` is not directly passed to the main application thread. The main application would need to observe the lobby's state change (e.g., players cleared) to react or be enhanced with a callback mechanism for more direct notification.
-- Backend (Main Server Application, e.g., `app.py`):
-  - Upon obtaining `GameState` (either from calling `Lobby.start_game()` directly after checking `should_game_start`, or by detecting a game was started by timeout):
-    - Generate a unique game ID (this is done by `Lobby.start_game()` and is part of `GameState`).
-    - Create a new Socket.IO room named after the `GameState.id`.
-    - Move the sockets of the `GameState.players` into this new room. This isolates game-specific communication.
-    - Emit a `game_started` event to all players who were moved into the game room. This event should include the `gameId` (from `GameState.id`) and potentially the initial game state or player list.
-- Frontend: Listen for the `game_started` event. Upon receiving it, the UI should change to indicate that the game has begun, typically by navigating to a game-specific URL using the `gameId`. For example, using Next.js App Router's `useRouter` hook (from `next/navigation`): `router.push('/game/' + gameId)`. This corresponds to a route structure like `src/app/game/[gameId]/page.tsx`.
+- Backend: In `lobby.py`, implement:
+  - `TIMEOUT_SECONDS` and `MIN_PLAYERS` constants
+  - Timer management with `_start_timer` and `_stop_timer`
+  - `_on_timeout` and `_on_start_game` handlers
+- Backend: In `events.py`, add `NEW_GAME` event
+- Backend: In `game_manager.py`, implement `new_game` method
+- Backend: In `app_manager.py`, implement:
+  - `_new_game` method for game creation
+  - `join_game` for room management
+- Frontend: Implement game room joining logic
+- Frontend: Add game state management
 
 **Validation:**
 
-- If one client joins, after `Lobby.TIMEOUT_SECONDS`, the `Lobby._on_timeout()` method should trigger `Lobby.start_game()`. The main server application should then detect this (e.g., by observing lobby state changes or through a future callback mechanism), create a Socket.IO room, and emit the `game_started` event. The client receives this event and their UI transitions to a game view (e.g., navigating to `/game/some-id`).
-- If `Lobby.MIN_PLAYERS` or more clients join, the main server application (after being notified of a player joining and then checking `Lobby.get_state().should_game_start`) should call `Lobby.start_game()`. The main server application then uses the returned `GameState` to create a Socket.IO room and emit the `game_started` event (this should happen sooner than the timeout). Client UIs should transition accordingly.
-- Backend logs (potentially in `matchmaking.py` for lobby actions and more detailed logs in the main server application for Socket.IO operations) should show the matchmaking timer starting, players being selected for a game, the game ID being generated, players being added to a room, and the `game_started` event being emitted.
+- Games are created when timeout occurs or minimum players reached
+- Players are moved to game rooms correctly
+- Game state is properly initialized
 
 ## Milestone 3: Question Delivery & Basic UI
 
-### Phase 3.1 — Static Question Provider
+### Phase 3.1 — Question Management
 
-**Goal:** Deliver a single, hard-coded trivia question from the backend to all players in an active game room, and display it on the Next.js game page.
+**Goal:** Implement question delivery system.
 
 **Tasks** (≈ 100 LOC)
 
-- Backend: Create `question_provider.py`. Implement a function `get_next_question()` that initially returns a hard-coded question object (e.g., with `text`, `options` array, `correctIndex`).
-- Backend: Create `game_manager.py`. Implement a basic `start_game(players_list, game_id)` function. Upon being called by `matchmaking.py`, this function will use `question_provider.get_next_question()` to fetch the static question.
-- Backend: `game_manager` then emits a `new_question` event to the specific game room (using the `game_id`), sending the question object as payload.
-- Frontend: In the Next.js dynamic game page (e.g., `src/app/game/[gameId]/page.tsx`), listen for the `new_question` event (likely within a Client Component).
-- Frontend: Create a React component (e.g., `src/components/Game/Question.tsx`) to render the question. This component will take the question object as a prop and display the `text` and `options`. The options could be simple buttons or list items for now.
+- Backend: In `questions.py`, implement:
+  - Question data structure
+  - Question provider interface
+  - Static question implementation
+- Backend: In `events.py`, add `NEW_QUESTION` event
+- Backend: In `game_manager.py`, implement question delivery
+- Frontend: Create question display component
+- Frontend: Implement question state management
 
 **Validation:**
 
-- After a game starts (from Milestone 2.2), all clients in that game room automatically display the same static question text and its options.
-- Backend logs show `game_manager` fetching the question and emitting `new_question` to the correct room.
+- Questions are delivered to game rooms
+- Question display updates correctly
+- Question state is managed properly
 
-### Phase 3.2 — Answer Submission & Ack
+### Phase 3.2 — Answer Submission
 
-**Goal:** Enable players to select an answer to the displayed question on the Next.js frontend and receive an acknowledgment from the server.
+**Goal:** Implement answer submission and validation.
 
 **Tasks** (≈ 150 LOC)
 
-- Frontend: In the `src/components/Game/Question.tsx` component (or wherever options are rendered), make each option clickable (e.g., a button).
-- Frontend: When a player clicks an option, emit a `submit_answer` event to the server. The payload should include necessary information, like `{ choiceIndex: number }` and potentially the `gameId` (though the server knows the room from `request.sid`).
-- Backend: In `game_manager.py`, implement a handler for the `submit_answer` event. This handler should log the `request.sid` (player ID) and their `choiceIndex`.
-- Backend: As a simple acknowledgment, the handler should emit an `answer_received` event back to the submitting client, perhaps with their chosen `choiceIndex`.
-- Frontend: Listen for the `answer_received` event. Upon receiving it, update the UI to give feedback, for example, by highlighting the player's chosen option or disabling other options.
+- Backend: In `events.py`, add answer-related events
+- Backend: In `game_manager.py`, implement:
+  - Answer validation
+  - Score tracking
+  - Answer acknowledgment
+- Frontend: Implement answer selection UI
+- Frontend: Add answer submission handling
+- Frontend: Implement answer feedback
 
 **Validation:**
 
-- Clicking an answer option on the Next.js game page highlights that option (or provides other visual feedback).
-- The backend logs show the `submit_answer` event from the correct player SID with the correct choice index.
-- The submitting client receives the `answer_received` acknowledgment.
+- Answers can be submitted
+- Correct/incorrect feedback is provided
+- Score updates are reflected
 
 ## Milestone 4: Scoring & Timer
 
-### Phase 4.1 — Simple Scoring Logic
+### Phase 4.1 — Scoring System
 
-**Goal:** Implement basic scoring for submitted answers and broadcast score updates to be displayed on the Next.js frontend.
+**Goal:** Implement comprehensive scoring system.
 
 **Tasks** (≈ 180 LOC)
 
-- Backend: In `game_manager.py`, when handling `submit_answer`, compare the `choiceIndex` with the `correctIndex` of the current question (requires `game_manager` to store the current question details).
-- Backend: For now, assign a fixed number of points for a correct answer (e.g., 1000 points) and 0 for incorrect.
-- Backend: Maintain a simple score object/dictionary within the `game_manager` for the current game, mapping `playerId` (or `sid`) to their score.
-- Backend: After processing an answer, emit a `score_update` event to all players in the game room. The payload should be an object like `{ scores: { playerId1: newScore1, playerId2: newScore2, ... } }` or individual updates `{ playerId, newScore }`.
-- Frontend: In the Next.js game page (`src/app/game/[gameId]/page.tsx`), create or use a `Scoreboard.tsx` component (e.g., `src/components/Game/Scoreboard.tsx`).
-- Frontend: Listen for the `score_update` event. Update the `Scoreboard.tsx` component to display the latest scores for all players in the game.
+- Backend: In `game_manager.py`, implement:
+  - Score calculation
+  - Score tracking per player
+  - Score update events
+- Frontend: Create scoreboard component
+- Frontend: Implement score display and updates
+- Frontend: Add score animations
 
 **Validation:**
 
-- After a player submits a correct answer, their score on the `Scoreboard` increases by the defined amount. Incorrect answers result in no score change.
-- All players in the game room see the updated scores simultaneously.
-- Backend logs confirm correct/incorrect answer processing and score calculation.
+- Scores are calculated correctly
+- Score updates are broadcast
+- Scoreboard updates in real-time
 
-### Phase 4.2 — Question Timer & Auto-advance
+### Phase 4.2 — Question Timer
 
-**Goal:** Implement a server-side timer for each question. If time runs out, unanswered players score zero, and the game automatically proceeds, updating the Next.js frontend.
+**Goal:** Implement question timer system.
 
 **Tasks** (≈ 160 LOC)
 
-- Backend: Create `helpers/timers.py` if not already present, or use `threading.Timer` / `asyncio.sleep` directly in `game_manager.py`.
-- Backend: When `game_manager.py` emits `new_question`, it should also start a server-side timer for the question's duration (e.g., 15 seconds, from `config.py`).
-- Backend: If the timer expires before all players have answered, the `game_manager` should:
-  - Consider any player who hasn't answered yet as having scored 0 points for that question.
-  - Trigger the delivery of the next question (for now, it can be the same static question, or a simple list of questions in `question_provider.py`). If it's the last question, trigger a `game_over` flow (to be detailed later).
-- Frontend: In the Next.js game page (`src/app/game/[gameId]/page.tsx`, likely within a client component), display a visual countdown timer (e.g., using a `Timer.tsx` component in `src/components/Shared/Timer.tsx`) synchronized with the question duration. This timer is primarily for user feedback; the server is the source of truth.
-- Frontend: When a `new_question` event is received (because the previous one timed out or was answered), the UI should reset to display the new question, and the countdown timer should restart.
+- Backend: In `game_manager.py`, implement:
+  - Question timer management
+  - Timeout handling
+  - Auto-advance logic
+- Frontend: Create timer component
+- Frontend: Implement timer display
+- Frontend: Add timer animations
 
 **Validation:**
 
-- The frontend displays a countdown timer for each question.
-- If players don't answer within the allotted time, the question automatically changes (or the game ends).
-- Players who didn't answer receive 0 points for that question (verifiable via `score_update` or backend logs).
-- Backend logs show timers starting and expiring correctly, and question advancement.
+- Timers work correctly
+- Timeouts are handled properly
+- Questions advance automatically
 
 ## Milestone 5: Bots & Adaptive Difficulty
 
-### Phase 5.1 — Bot Simulation
+### Phase 5.1 — Bot Implementation
 
-**Goal:** Introduce simulated bot players into games, visible on the Next.js frontend's scoreboard.
+**Goal:** Add bot players for single-player games.
 
 **Tasks** (≈ 180 LOC)
 
-- Backend: Create `bot_player.py`. Define a `Bot` class or set of functions.
-- Backend: `Bot` logic should include:
-  - A way to "join" a game (the `game_manager` will instantiate them).
-  - A method to simulate `submit_answer` after a random delay (within `BOT_MIN_DELAY` and `BOT_MAX_DELAY` from `config.py`).
-  - Simulated accuracy: The bot should have a configurable chance (e.g., 60-90% from `BOT_ACCURACY_RANGE` in `config.py`) of choosing the correct answer.
-- Backend: In `game_manager.py`, when a game is about to start, if the number of human players is less than a threshold (e.g., < 2), instantiate 1 to 3 `Bot` players.
-- Backend: These bots will need to be integrated into the game's player list, score tracking, and will emit `submit_answer` events as if they were clients (perhaps internally calling the same answer processing logic).
-- Frontend: Bot players should appear in the `src/components/Game/Scoreboard.tsx` and their scores should update like human players. No specific frontend changes are needed if bots correctly mimic player data and events that the scoreboard already handles.
+- Backend: In `game_manager.py`, implement:
+  - Bot player creation
+  - Bot answer simulation
+  - Bot difficulty levels
+- Frontend: Update UI to show bot players
+- Frontend: Add bot indicators
 
 **Validation:**
 
-- If a single human player starts a game, 1-3 bot players are added and appear on the scoreboard.
-- Bots automatically submit answers after some delay.
-- Bots' scores reflect their configured accuracy (i.e., they get some answers right, some wrong).
-- Backend logs show bot creation and their simulated actions.
+- Bots join games appropriately
+- Bot answers are simulated
+- Bot scores are tracked
 
-### Phase 5.2 — Adaptive Question Difficulty
+### Phase 5.2 — Adaptive Difficulty
 
-**Goal:** Modify the question provider to select questions of varying difficulty, potentially reflected on the Next.js frontend.
+**Goal:** Implement dynamic question difficulty.
 
 **Tasks** (≈ 140 LOC)
 
-- Backend: In `question_provider.py`, expand the question data structure to include a `difficulty` field ("easy", "medium", "hard"). Create separate lists or a database structure for questions of different difficulties.
-- Backend: Modify `question_provider.get_next_question(player_id, prev_correct: bool)` to accept the player's ID and whether their previous answer was correct.
-- Backend: Implement logic in `get_next_question` to select an easier question if `prev_correct` was `false`, and a harder one if `true` (or stay at the same level). This needs to track each player's current difficulty level or adapt dynamically.
-- Backend: In `game_manager.py`, when it's time to send the next question to a player (or the whole room if difficulty is room-wide initially, simplifying by sending the same difficulty question to all players based on an average or a specific player's performance for now), call the updated `get_next_question` with the relevant performance data.
-- Frontend: Optionally, display the current question's difficulty level in the `src/components/Game/Question.tsx` component if this information is sent with the question object and the component is designed as a Client Component to receive and display this.
+- Backend: In `questions.py`, implement:
+  - Difficulty levels
+  - Question categorization
+  - Difficulty adjustment logic
+- Backend: In `game_manager.py`, implement:
+  - Player performance tracking
+  - Difficulty selection
+- Frontend: Show difficulty indicators
+- Frontend: Add difficulty transitions
 
 **Validation:**
 
-- Backend logs show the `question_provider` selecting questions from different difficulty pools based on the `prev_correct` flag.
-- If a player consistently answers correctly, they start receiving questions marked as "harder" (if this data is exposed or logged).
-- If a player struggles, they receive "easier" questions.
+- Difficulty adjusts based on performance
+- Questions are appropriately challenging
+- Difficulty changes are smooth
 
-## Milestone 6: "Helps" & LLM Stub
+## Milestone 6: Help Features
 
 ### Phase 6.1 — 50/50 Help
 
-**Goal:** Implement the "50/50" help feature on the Next.js frontend, allowing players to remove two incorrect options.
+**Goal:** Implement 50/50 help feature.
 
 **Tasks** (≈ 120 LOC)
 
-- Backend: In `game_manager.py`, handle a new `use_help` event with a payload like `{ type: '5050' }`.
-- Backend: Verify the player has this help available (requires adding `helpsRemaining` to the player model in `game_manager` or `models/player.py` if it exists).
-- Backend: If available, randomly select two incorrect answer options for the current question. Emit an event like `help_used_5050` back to the requesting client, with the indexes of the two options to be removed: `{ removed_options: [index1, index2] }`. Decrement the player's available "50/50" helps.
-- Frontend: In the Next.js `src/components/Game/Question.tsx` component (which must be a Client Component to handle interaction), add a "50/50" button.
-- Frontend: On click, emit `use_help: { type: '5050' }`. Disable the button after use or if unavailable.
-- Frontend: Listen for `help_used_5050`. When received, update the UI to disable or visually hide the specified incorrect answer options.
+- Backend: In `game_manager.py`, implement:
+  - Help availability tracking
+  - 50/50 option elimination
+  - Help usage events
+- Frontend: Add 50/50 button
+- Frontend: Implement option elimination
+- Frontend: Add help cooldown
 
 **Validation:**
 
-- Clicking the "50/50" button on the frontend disables/hides two incorrect answer options. The correct answer and one other incorrect option remain.
-- The button becomes unavailable after one use (or as per game rules).
-- Backend logs show the help being used and the correct options being identified for removal.
+- 50/50 works correctly
+- Options are eliminated properly
+- Help usage is tracked
 
-### Phase 6.2 — "Call a Friend" Stub
+### Phase 6.2 — Call a Friend
 
-**Goal:** Wire up the "Call a Friend" help feature on the Next.js frontend, initially returning a stubbed hint.
+**Goal:** Implement Call a Friend help feature.
 
 **Tasks** (≈ 100 LOC)
 
-- Backend: Create `helpers/llm_client.py`. Implement a stub function `get_call_friend_advice(question_text, options)` that returns a hard-coded hint string (e.g., "I'm not sure, but option C looks suspicious!").
-- Backend: In `game_manager.py`, handle `use_help: { type: 'callFriend' }`. Verify availability.
-- Backend: Call the stubbed `llm_client.get_call_friend_advice()` with the current question's details.
-- Backend: Emit an event like `help_used_call_friend` back to the client with the hint: `{ hint: "some advice" }`. Decrement availability.
-- Frontend: In `src/components/Game/Question.tsx` (Client Component), add a "Call a Friend" button.
-- Frontend: On click, emit `use_help: { type: 'callFriend' }`. Disable appropriately.
-- Frontend: Listen for `help_used_call_friend`. Display the received `hint` in a small, temporary overlay or a dedicated area in the UI.
+- Backend: In `game_manager.py`, implement:
+  - Friend call simulation
+  - Hint generation
+  - Help usage tracking
+- Frontend: Add Call a Friend button
+- Frontend: Implement hint display
+- Frontend: Add help cooldown
 
 **Validation:**
 
-- Clicking the "Call a Friend" button displays the predefined stubbed hint on the UI.
-- The button becomes unavailable after use.
-- Backend logs show the stub function being called and the hint being sent.
+- Hints are generated
+- Help usage is tracked
+- UI updates appropriately
 
-## Milestone 7: Chat, Emoji & Double-Score
+## Milestone 7: Social Features
 
-### Phase 7.1 — In-Game Chat & Emoji
+### Phase 7.1 — Chat System
 
-**Goal:** Implement a real-time chat system within the Next.js game page.
+**Goal:** Implement in-game chat.
 
 **Tasks** (≈ 140 LOC)
 
-- Backend: Create `chat.py`. This module will handle chat-related Socket.IO events.
-- Backend: In `app.py` or `game_manager.py` (if chat is room-specific), handle `send_chat_message` (payload: `{ text: string }`) and potentially `send_emoji` (payload: `{ emoji_code: string }`).
-- Backend: When a message/emoji is received, `chat.py` should rebroadcast it as a `new_chat_message` event to all clients in the same game room. The payload should include the sender's ID/name and the message content.
-- Frontend: Create a `ChatBox.tsx` Client Component (e.g., `src/components/Chat/ChatBox.tsx`) for the Next.js game page (`src/app/game/[gameId]/page.tsx`). This component will have an input field for typing messages and an area to display received messages.
-- Frontend: Implement sending `send_chat_message` when the user submits text.
-- Frontend: Listen for `new_chat_message` and append new messages to the display area, showing sender and content.
-- Frontend: (Optional) Add a simple `EmojiPicker.tsx` component that allows users to select from a predefined set of emojis, which then get sent via `send_emoji` or as text.
+- Backend: In `events.py`, add chat events
+- Backend: In `game_manager.py`, implement:
+  - Chat message handling
+  - Message broadcasting
+  - Chat room management
+- Frontend: Create chat component
+- Frontend: Implement message display
+- Frontend: Add emoji support
 
 **Validation:**
 
-- Clients in the same game room can send text messages, and all other clients in that room see the messages appear in their chat UI with sender identification.
-- If emoji support is added, selected emojis are also broadcast and displayed.
-- Chat messages do not interfere with game progression.
+- Chat messages are sent/received
+- Messages are displayed correctly
+- Emojis work properly
 
-### Phase 7.2 — Double Score Help
+### Phase 7.2 — Double Score
 
-**Goal:** Implement the "Double Score" help feature on the Next.js frontend.
+**Goal:** Implement double score power-up.
 
 **Tasks** (≈ 100 LOC)
 
-- Backend: In `game_manager.py`, handle `use_help: { type: 'doubleScore' }`. Verify availability.
-- Backend: Set a flag (e.g., `player.usedDoubleScoreNext = true`) for the requesting player in their server-side state. Decrement availability.
-- Backend: In the scoring logic within `game_manager` (Phase 4.1), when calculating points for a correct answer, check if this flag is set for the player. If `true`, multiply their earned points for that question by 2, and then reset the flag to `false`.
-- Frontend: In `src/components/Game/Question.tsx` (Client Component), add a "Double Score" button.
-- Frontend: On click, emit `use_help: { type: 'doubleScore' }`. Disable appropriately.
-- Frontend: Optionally, provide visual feedback that "Double Score" is active for their next answer (e.g., an icon near their score or name).
+- Backend: In `game_manager.py`, implement:
+  - Double score activation
+  - Score multiplication
+  - Power-up tracking
+- Frontend: Add double score button
+- Frontend: Implement score multiplier display
+- Frontend: Add power-up animations
 
 **Validation:**
 
-- After a player uses "Double Score" and then answers the next question correctly, their score update reflects double the usual points for that question.
-- The double score effect applies only to the one question immediately following the use of the help.
-- The button becomes unavailable after use.
+- Double score works correctly
+- Scores are multiplied properly
+- UI updates appropriately
 
-## Milestone 8: Final Polishing & Deployment
+## Milestone 8: Final Polish
 
-### Phase 8.1 — Leaderboard & Game-Over Screen
+### Phase 8.1 — Game Over & Leaderboard
 
-**Goal:** Display the final game results on the Next.js frontend when the game concludes.
+**Goal:** Implement game conclusion and leaderboard.
 
 **Tasks** (≈ 80 LOC)
 
-- Backend: In `game_manager.py`, after the last question is completed (e.g., 10th question answered or timed out), determine the end of the game.
-- Backend: Compile a list of all players with their final scores. Sort this list in descending order of score.
-- Backend: Emit a `game_over` event to all players in the game room. The payload should include the sorted leaderboard data (e.g., `[{ name, score, rank }, ...]`).
-- Frontend: In the Next.js game page (`src/app/game/[gameId]/page.tsx`), listen for the `game_over` event (likely in a Client Component).
-- Frontend: Create a `Leaderboard.tsx` component (e.g., `src/components/Game/Leaderboard.tsx`). When `game_over` is received, display this component, showing the final player names, scores, and rankings, possibly with special styling for the winner(s). This might replace the main game UI or be shown in a modal.
+- Backend: In `game_manager.py`, implement:
+  - Game end detection
+  - Final score calculation
+  - Leaderboard generation
+- Frontend: Create leaderboard component
+- Frontend: Implement game over screen
+- Frontend: Add victory animations
 
 **Validation:**
 
-- After the final question, all clients in the game receive the `game_over` event.
-- A leaderboard is displayed showing all players, their final scores, sorted correctly, and potentially highlighting the winner.
-- The game interface might transition to this leaderboard view.
+- Games end properly
+- Leaderboard is accurate
+- UI transitions smoothly
 
-### Phase 8.2 — Docker, Scaling & CI
+### Phase 8.2 — Deployment
 
-**Goal:** Containerize both backend and frontend applications for consistent deployment and set up basic Continuous Integration checks.
+**Goal:** Prepare for production deployment.
 
 **Tasks** (≈ 150 LOC)
 
-- Backend: Write a `Dockerfile` for the Python/Flask-SocketIO backend. This should install dependencies from `requirements.txt` and define how to run the application (e.g., using `gunicorn` with `eventlet` or `gevent` workers for Socket.IO).
-- Frontend: Write a `Dockerfile` for the Next.js frontend. This will typically involve a multi-stage build:
-  - A build stage to install Node.js, copy `package.json`, install dependencies (`npm install`), copy source code, and run the build script (`npm run build`).
-  - A smaller production stage that copies the build output (the `.next` directory and `node_modules` if using a standalone Next.js server, or static assets if exporting) from the build stage and defines the `CMD` to run the Next.js application (e.g., `npm run start`).
-- CI: Add a basic CI pipeline (e.g., using GitHub Actions).
-  - For backend: Lint Python code (e.g., with `flake8`), run unit tests (if any written by this point).
-  - For frontend: Lint TypeScript/JS code (e.g., with `eslint`), run unit tests (if any).
-  - Optionally, add steps to build Docker images to verify Dockerfiles are correct.
+- Backend: Create `Dockerfile`
+- Frontend: Create `Dockerfile`
+- Add Docker Compose configuration
+- Set up CI/CD pipeline
+- Configure production environment
 
 **Validation:**
 
-- `docker build . -f backend/Dockerfile` successfully builds the backend image.
-- `docker build . -f frontend/Dockerfile` successfully builds the Next.js frontend image.
-- Both containers can be run locally (e.g., with `docker run`).
-- The CI pipeline (e.g., GitHub Actions workflow) runs successfully on code pushes or pull requests, performing linting and build checks.
+- Docker builds succeed
+- Containers run properly
+- CI/CD pipeline works
 
-### Phase 8.3 — Persistence & Analytics (Stretch)
+### Phase 8.3 — Analytics (Stretch)
 
-**Goal:** (Stretch Goal) Log completed game sessions and player scores to a simple database for later review or analytics.
+**Goal:** Add game analytics.
 
 **Tasks** (≈ 200 LOC)
 
-- Backend: Choose a simple database (e.g., SQLite for ease of setup, or PostgreSQL for more features). Add the necessary Python library (e.g., `psycopg2-binary` for Postgres, `sqlite3` is built-in) to `requirements.txt`.
-- Backend: Define basic database models/schemas for `GameSession` (e.g., `game_id`, `start_time`, `end_time`) and `PlayerScoreInGame` (e.g., linking to `GameSession`, `player_id`, `final_score`, `rank`).
-- Backend: In `game_manager.py`, after the `game_over` event is emitted (or as part of that process), write the game session details and each player's final score to the database.
-- Backend: Set up basic database connection handling in `app.py` or a separate `db.py` module.
+- Backend: Implement:
+  - Game session logging
+  - Player statistics
+  - Performance metrics
+- Frontend: Add:
+  - Player statistics display
+  - Performance graphs
+  - Achievement system
 
 **Validation:**
 
-- After a game completes, new records corresponding to that game session and the participating players' scores appear in the database.
-- It's possible to query the database (e.g., using a DB browser for SQLite or `psql` for Postgres) and retrieve information about past games.
-- The application continues to function correctly even if database writes fail (graceful error handling).
+- Data is logged correctly
+- Statistics are accurate
+- UI displays properly
 
-## Throughout this process:
+## Throughout Development:
 
-- Keep each PR focused on one phase (≲ 200 LOC delta ideally, but can be flexible if a logical unit is slightly larger).
-- After each phase, perform thorough manual end-to-end testing of the newly added feature in isolation, using the defined validation criteria.
-- Only merge PRs when the developer and ideally a peer or test client confirm that the validation criteria are met and the feature works as expected.
-
-## General Considerations & Potential Improvements
-
-- **Configuration Management**: Early on (Milestone 1 or 2), establish a clear strategy for managing configurations (e.g., `config.py` for backend, environment variables for Next.js via `next.config.js` or `.env` files, accessible in Server Components and passed to Client Components as props if needed) for settings like API keys, database URLs, lobby timeout, question duration.
-- **Error Handling**: Continuously implement robust error handling on both client (Next.js) and server (Flask) sides. This includes handling socket disconnections, invalid event payloads, unexpected game states, API failures (for LLM later), and database errors (if persistence is added). Validation criteria should implicitly cover some of this, but dedicated thought is needed.
-- **User Authentication/Identification**: While `request.sid` is used initially, consider how players will be identified more persistently if features like user accounts or cross-session leaderboards are envisioned for the future. This could be a separate, later milestone.
-- **Automated Testing**: While "Validation" sections guide manual checks, progressively add automated tests:
-  - Backend: Unit tests for `game_manager` logic, `question_provider`, `bot_player`, `matchmaking` rules. Integration tests for Socket.IO event handling.
-  - Frontend: Unit/integration tests for Next.js components (Client and Server Components where applicable) and hooks using Jest and React Testing Library. Mock `src/socket.ts` for testing components that interact with Socket.IO. Test Next.js specific features like routing (`next/navigation`).
-- **Scalability of In-Memory Structures**: The in-memory lobby queue and game state in `game_manager` are suitable for initial development. If scaling to many concurrent users is a future goal, these might need to be backed by a distributed store like Redis. This is a consideration for future architecture, not immediate planning.
-- **Accessibility (a11y) & UX**: For the Next.js frontend, continuously apply accessibility best practices (semantic HTML, ARIA attributes, keyboard navigation) and focus on good user experience (clear feedback, intuitive controls, responsive design).
-- **Next.js Specifics**: Leverage Next.js App Router features where appropriate:
-  - Route Handlers (`app/api/.../route.ts`) could be used for auxiliary RESTful endpoints if needed, though primary communication is via Socket.IO.
-  - Server Components for data fetching or rendering static parts of pages, Client Components for interactivity.
-  - Image optimization (`next/image`), font optimization (`next/font`).
-  - Utilize `layout.tsx` for shared UI and `loading.tsx` / `error.tsx` for automatic UI around `page.tsx` components.
+- Maintain consistent error handling
+- Follow established design patterns
+- Keep code modular and testable
+- Document all major components
+- Ensure proper type hints
+- Maintain clean code structure

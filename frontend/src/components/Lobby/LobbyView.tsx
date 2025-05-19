@@ -5,11 +5,11 @@ import { useLobby } from "./Lobby";
 import "./Lobby.css";
 
 export default function Lobby() {
-  const { players, handleJoin } = useLobby();
+  const { players, handleJoinLobby } = useLobby();
 
   return (
     <div className="lobbyContainer">
-      <button className="joinButton" onClick={handleJoin}>
+      <button className="joinButton" onClick={handleJoinLobby}>
         Join Lobby
       </button>
       <p className="playerCount">Players in lobby: {players.length}</p>
