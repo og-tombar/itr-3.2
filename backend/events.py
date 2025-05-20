@@ -1,7 +1,7 @@
 """Events that can be emitted by the server."""
 
+from asyncio import Queue
 from enum import Enum
-from queue import Queue
 
 from data_models import EventData
 
@@ -11,6 +11,7 @@ class ClientEvent(str, Enum):
 
     JOIN_LOBBY = "join_lobby"
     JOIN_GAME = "join_game"
+    SUBMIT_ANSWER = "submit_answer"
     DISCONNECT = "disconnect"
 
 
@@ -20,6 +21,8 @@ class ServerEvent(str, Enum):
     LOBBY_UPDATE = "lobby_update"
     NEW_GAME = "new_game"
     NEW_QUESTION = "new_question"
+    QUESTION_UPDATE = "question_update"
+    ANSWER_RESULT = "answer_result"
 
 
 class EventQueue:
@@ -28,20 +31,20 @@ class EventQueue:
     _events = Queue[tuple[ServerEvent, EventData]]()
 
     @staticmethod
-    def put(event: ServerEvent, data: EventData) -> None:
+    async def put(event: ServerEvent, data: EventData) -> None:
         """Add an event to the queue.
 
         Args:
             event (ServerEvent): The event to add to the queue.
             data (EventData): The data associated with the event.
         """
-        EventQueue._events.put((event, data))
+        await EventQueue._events.put((event, data))
 
     @staticmethod
-    def get() -> tuple[ServerEvent, EventData]:
+    async def get() -> tuple[ServerEvent, EventData]:
         """Get an event from the queue.
 
         Returns:
             tuple[ServerEvent, EventData]: The event and data from the queue.
         """
-        return EventQueue._events.get()
+        return await EventQueue._events.get()

@@ -30,6 +30,10 @@ class AppManager:
                 case ServerEvent.LOBBY_UPDATE: await self._lobby_update(data)
                 case ServerEvent.NEW_GAME: await self._new_game()
 
+    ############################################################
+    # Client event handlers
+    ############################################################
+
     async def add_player(self, sid: str):
         """Adds the player to the lobby."""
         print("[app_manager] add_player", sid)
@@ -51,6 +55,10 @@ class AppManager:
         print("[app_manager] join_game", sid, data)
         await self.sio.enter_room(sid, data.game_id)
 
+    ############################################################
+    # Server event handlers
+    ############################################################
+
     async def _lobby_update(self, data: LobbyUpdateData):
         """Emits a lobby update to the players.
 
@@ -65,5 +73,5 @@ class AppManager:
         """Creates a new game and emits the game id to the players."""
         players = await self._lobby.get_players()
         await self._lobby.clear()
-        # game = self._game_manager.new_game(players)
-        # await self._sio.emit(ServerEvent.NEW_GAME, game.id)
+        game = self._game_manager.new_game(players)
+        await self.sio.emit(ServerEvent.NEW_GAME, game.id)

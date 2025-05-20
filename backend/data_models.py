@@ -27,6 +27,14 @@ class LobbyUpdateData(EventData):
         return LobbyUpdateData(d["players"], d["time_remaining"], d["should_start_game"])
 
 
+class QuestionUpdateData(EventData):
+    """The data associated with a question update event."""
+    id: str
+    text: str
+    options: list[str]
+    time_remaining: int
+
+
 @dataclass
 class JoinGameData(EventData):
     """The data associated with a join game event."""
@@ -39,7 +47,17 @@ class JoinGameData(EventData):
 
 
 @dataclass
-class Game:
+class GameData:
     """The data for a game state."""
     id: str
     players: list[str]
+
+
+@dataclass
+class Question:
+    """The data for a question. Includes the correct answer (do not send to clients)."""
+    id: str
+    text: str
+    options: list[str]
+    correct_index: int
+    time_remaining: int = 10

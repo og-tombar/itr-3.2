@@ -29,14 +29,14 @@ async def handle_join_game(sid: str, data: dict):
     """
     event_data = JoinGameData.from_dict(data)
     print(f"[backend] {sid} joined game {event_data.game_id}")
-    # manager.join_game(sid, event_data)
+    await manager.join_game(sid, event_data)
 
 
 @sio.on(ClientEvent.DISCONNECT)
 async def handle_disconnect(sid: str):
     """Handles a player disconnecting from the server."""
     print(f"[backend] {sid} disconnected")
-    # manager.remove_player(sid)
+    await manager.remove_player(sid)
 
 
 @asynccontextmanager
