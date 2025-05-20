@@ -1,14 +1,8 @@
 """Manages the game state."""
 
 import uuid
-from dataclasses import dataclass
 
-
-@dataclass
-class Game:
-    """The data for a game state."""
-    id: str
-    players: list[str]
+from data_models import Game
 
 
 class GameManager:

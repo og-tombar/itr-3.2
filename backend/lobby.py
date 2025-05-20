@@ -1,6 +1,7 @@
 """A simple in-memory lobby."""
 
-from events import EventQueue, LobbyUpdateData, ServerEvent
+from data_models import LobbyUpdateData
+from events import EventQueue, ServerEvent
 from interval_timer import IntervalTimer
 from interval_timer.interval import Interval
 

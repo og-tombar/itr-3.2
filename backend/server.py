@@ -1,6 +1,7 @@
 """Backend for the application."""
 
 from app_manager import AppManager
+from data_models import JoinGameData
 from events import ClientEvent
 from flask import Flask, request
 from flask_socketio import SocketIO
@@ -25,8 +26,9 @@ def handle_join_game(data):
     Args:
         data (dict): The data from the client.
     """
-    print(f"[backend] {request.sid} joined game {data['game_id']}")
-    manager.join_game(data)
+    event_data = JoinGameData.from_dict(data)
+    print(f"[backend] {request.sid} joined game {event_data.game_id}")
+    manager.join_game(event_data)
 
 
 @sio.on(ClientEvent.DISCONNECT)

@@ -1,9 +1,9 @@
 """Events that can be emitted by the server."""
 
-from abc import ABC
-from dataclasses import dataclass
 from enum import Enum
 from queue import Queue
+
+from data_models import EventData
 
 
 class ClientEvent(str, Enum):
@@ -20,19 +20,6 @@ class ServerEvent(str, Enum):
     LOBBY_UPDATE = "lobby_update"
     NEW_GAME = "new_game"
     NEW_QUESTION = "new_question"
-
-
-@dataclass
-class EventData(ABC):
-    """The data associated with an event."""
-
-
-@dataclass
-class LobbyUpdateData(EventData):
-    """The data associated with a lobby update event."""
-    players: list[str]
-    time_remaining: int
-    should_start_game: bool
 
 
 class EventQueue:

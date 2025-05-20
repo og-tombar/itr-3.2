@@ -1,6 +1,7 @@
 """Manages the app."""
 
-from events import EventQueue, LobbyUpdateData, ServerEvent
+from data_models import JoinGameData, LobbyUpdateData
+from events import EventQueue, ServerEvent
 from flask import request
 from flask_socketio import SocketIO, join_room, leave_room
 from game_manager import GameManager
@@ -48,14 +49,14 @@ class AppManager:
         leave_room(Lobby.ROOM)
         self._lobby.remove_player(request.sid)
 
-    def join_game(self, data: dict):
+    def join_game(self, data: JoinGameData):
         """Joins the player to the game.
 
         Args:
             data (dict): The data from the client.
         """
         print("[app_manager] join_game", request.sid, data)
-        join_room(data['game_id'])
+        join_room(data.game_id)
 
     def _lobby_update(self, data: LobbyUpdateData):
         """Emits a lobby update to the players.
