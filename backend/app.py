@@ -1,5 +1,7 @@
 """Backend for the application."""
 
+from contextlib import asynccontextmanager
+
 import socketio
 import uvicorn
 from app_manager import AppManager
@@ -8,7 +10,6 @@ from events import ClientEvent
 from fastapi import FastAPI
 
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
-app = FastAPI()
 manager = AppManager()
 
 
@@ -16,7 +17,7 @@ manager = AppManager()
 async def handle_join_lobby(sid: str, _: dict):
     """Handles a player joining the lobby."""
     print(f"[backend] {sid} joined lobby")
-    # manager.add_player(sid)
+    await manager.add_player(sid)
 
 
 @sio.on(ClientEvent.JOIN_GAME)
@@ -38,6 +39,15 @@ async def handle_disconnect(sid: str):
     # manager.remove_player(sid)
 
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Initialize the app manager when the application starts."""
+    manager.sio = sio
+    await manager.run()
+    yield
+
+
 if __name__ == "__main__":
+    app = FastAPI(lifespan=lifespan)
     sio_app = socketio.ASGIApp(sio, other_asgi_app=app)
     uvicorn.run(sio_app, host="0.0.0.0", port=8000)

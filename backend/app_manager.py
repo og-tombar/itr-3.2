@@ -1,9 +1,8 @@
 """Manages the app."""
 
+import socketio
 from data_models import JoinGameData, LobbyUpdateData
 from events import EventQueue, ServerEvent
-from flask import request
-from flask_socketio import SocketIO, join_room, leave_room
 from game_manager import GameManager
 from lobby import Lobby
 
@@ -12,66 +11,59 @@ class AppManager:
     """Manages the app."""
 
     def __init__(self):
-        self._sio: SocketIO | None = None
         self._lobby = Lobby()
         self._game_manager = GameManager()
 
-    def set_sio(self, sio: SocketIO):
-        """Sets the socketio instance.
+        self.sio: socketio.AsyncServer | None = None
 
-        Args:
-            sio (SocketIO): The socketio instance.
-        """
-        self._sio = sio
-
-    def run(self) -> None:
+    async def run(self) -> None:
         """Runs the app manager."""
         print("[app_manager] running")
-        self._sio.start_background_task(self.consume_events)
+        self.sio.start_background_task(self.consume_events)
 
-    def consume_events(self):
+    async def consume_events(self):
         """Consumes events from the event queue."""
+        print("[app_manager] consuming events")
         while True:
-            event, data = EventQueue.get()
+            event, data = await EventQueue.get()
             match event:
-                case ServerEvent.LOBBY_UPDATE: self._lobby_update(data)
-                case ServerEvent.NEW_GAME: self._new_game()
+                case ServerEvent.LOBBY_UPDATE: await self._lobby_update(data)
+                case ServerEvent.NEW_GAME: await self._new_game()
 
-    def add_player(self):
+    async def add_player(self, sid: str):
         """Adds the player to the lobby."""
-        print("[app_manager] add_player", request.sid)
-        join_room(Lobby.ROOM)
-        self._lobby.add_player(request.sid)
+        print("[app_manager] add_player", sid)
+        await self.sio.enter_room(sid, Lobby.ROOM)
+        await self._lobby.add_player(sid)
 
-    def remove_player(self):
+    async def remove_player(self, sid: str):
         """Removes the player from the lobby."""
-        print("[app_manager] remove_player", request.sid)
-        leave_room(Lobby.ROOM)
-        self._lobby.remove_player(request.sid)
+        print("[app_manager] remove_player", sid)
+        await self.sio.leave_room(sid, Lobby.ROOM)
+        await self._lobby.remove_player(sid)
 
-    def join_game(self, data: JoinGameData):
+    async def join_game(self, sid: str, data: JoinGameData):
         """Joins the player to the game.
 
         Args:
             data (dict): The data from the client.
         """
-        print("[app_manager] join_game", request.sid, data)
-        join_room(data.game_id)
+        print("[app_manager] join_game", sid, data)
+        await self.sio.enter_room(sid, data.game_id)
 
-    def _lobby_update(self, data: LobbyUpdateData):
+    async def _lobby_update(self, data: LobbyUpdateData):
         """Emits a lobby update to the players.
 
         Args:
             data (LobbyUpdateData): The data to emit.
         """
-        self._sio.emit(ServerEvent.LOBBY_UPDATE, data.__dict__)
+        await self.sio.emit(ServerEvent.LOBBY_UPDATE, data.__dict__)
         if data.should_start_game:
-            self._new_game()
+            await self._new_game()
 
-    def _new_game(self):
+    async def _new_game(self):
         """Creates a new game and emits the game id to the players."""
-        print("[app_manager] new_game")
-        players = self._lobby.get_players()
-        self._lobby.clear()
-        game = self._game_manager.new_game(players)
-        self._sio.emit(ServerEvent.NEW_GAME, game.id)
+        players = await self._lobby.get_players()
+        await self._lobby.clear()
+        # game = self._game_manager.new_game(players)
+        # await self._sio.emit(ServerEvent.NEW_GAME, game.id)

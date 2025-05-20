@@ -1,9 +1,9 @@
 """A simple in-memory lobby."""
 
+import asyncio
+
 from data_models import LobbyUpdateData
 from events import EventQueue, ServerEvent
-from interval_timer import IntervalTimer
-from interval_timer.interval import Interval
 
 
 class Lobby:
@@ -15,9 +15,10 @@ class Lobby:
 
     def __init__(self):
         self._players = set[str]()
+        self._time_remaining = Lobby.TIMEOUT_SECONDS
         self._is_timer_active = False
 
-    def add_player(self, sid: str) -> None:
+    async def add_player(self, sid: str) -> None:
         """Adds a player to the lobby.
 
         Args:
@@ -25,9 +26,9 @@ class Lobby:
         """
         self._players.add(sid)
         if not self._is_timer_active:
-            self._start_timer()
+            asyncio.create_task(self._start_timer())
 
-    def remove_player(self, sid: str) -> None:
+    async def remove_player(self, sid: str) -> None:
         """Removes a player from the lobby.
 
         Args:
@@ -37,7 +38,7 @@ class Lobby:
         if not self._players:
             self._is_timer_active = False
 
-    def get_players(self) -> list[str]:
+    async def get_players(self) -> list[str]:
         """Gets the players in the lobby.
 
         Returns:
@@ -45,32 +46,31 @@ class Lobby:
         """
         return list(self._players)
 
-    def clear(self) -> None:
+    async def clear(self) -> None:
         """Clears the lobby."""
         self._is_timer_active = False
         self._players.clear()
 
-    def _start_timer(self) -> None:
+    async def _start_timer(self) -> None:
         """Starts the timer."""
+        self._time_remaining = Lobby.TIMEOUT_SECONDS
         self._is_timer_active = True
         while self._is_timer_active:
-            for interval in IntervalTimer(1, stop=Lobby.TIMEOUT_SECONDS):
-                if not self._is_timer_active:
-                    return
-                self._tick(interval)
+            await self._tick()
+            await asyncio.sleep(1)
+            self._time_remaining -= 1
 
-    def _tick(self, interval: Interval) -> None:
+    async def _tick(self) -> None:
         """Called when the timer ticks."""
-        time_remaining = Lobby.TIMEOUT_SECONDS - interval.time - 1
         should_start_game = (
             len(self._players) >= Lobby.MAX_PLAYERS
-            or (time_remaining <= 0 < len(self._players))
+            or (self._time_remaining <= 0 < len(self._players))
         )
         data = LobbyUpdateData(
             players=list(self._players),
-            time_remaining=time_remaining,
+            time_remaining=self._time_remaining,
             should_start_game=should_start_game,
         )
-        EventQueue.put(ServerEvent.LOBBY_UPDATE, data)
+        await EventQueue.put(ServerEvent.LOBBY_UPDATE, data)
         if should_start_game:
             self._is_timer_active = False
