@@ -5,15 +5,24 @@ import { useLobby } from "./Lobby";
 import "./Lobby.css";
 
 export default function Lobby() {
-  const { players, timeRemaining, handleJoinLobby } = useLobby();
+  const { timeRemaining, handleJoin } = useLobby();
 
   return (
     <div className="lobbyContainer">
-      <button className="joinButton" onClick={handleJoinLobby}>
-        Join Lobby
-      </button>
-      <p className="playerCount">Players in lobby: {players.length}</p>
-      <p className="timeRemaining">Time remaining: {timeRemaining}</p>
+      <h1 className="mainTitle">Triv-YA!</h1>
+      <div className="timer">
+        <span>{timeRemaining}</span>
+      </div>
+      <div className="mainContent">
+        <button className="joinButton" onClick={handleJoin}>
+          Join Game
+        </button>
+      </div>
+      <div className="decorativeElements">
+        <div className="bubble bubble1"></div>
+        <div className="bubble bubble2"></div>
+        <div className="bubble bubble3"></div>
+      </div>
     </div>
   );
 }

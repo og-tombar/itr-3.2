@@ -21,9 +21,9 @@ interface LobbyUpdate {
 export function useLobby() {
   const router = useRouter();
   const [players, setPlayers] = useState<string[]>([]);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [timeRemaining, setTimeRemaining] = useState<number | undefined>();
 
-  const handleJoinLobby = useCallback(() => {
+  const handleJoin = useCallback(() => {
     console.log("[frontend] join_lobby");
     socket.emit(ClientEvent.JOIN_LOBBY, {});
   }, []);
@@ -53,5 +53,5 @@ export function useLobby() {
     };
   }, [handleLobbyUpdate, handleNewGame]);
 
-  return { players, timeRemaining, handleJoinLobby };
+  return { players, timeRemaining, handleJoin };
 }
