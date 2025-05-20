@@ -9,7 +9,7 @@ export default function Lobby() {
 
   return (
     <div className="lobbyContainer">
-      <h1 className="mainTitle">Triv-YA!</h1>
+      <h1 className="mainTitle">Takooh</h1>
       <div className="timer">
         <span>{timeRemaining}</span>
       </div>
