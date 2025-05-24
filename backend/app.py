@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import socketio
 import uvicorn
 from app_manager import AppManager
-from data_models import JoinGameData
+from data_models import JoinGameData, SubmitAnswerData
 from events import ClientEvent
 from fastapi import FastAPI
 
@@ -17,7 +17,7 @@ manager = AppManager()
 async def handle_join_lobby(sid: str, _: dict):
     """Handles a player joining the lobby."""
     print(f"[backend] {sid} joined lobby")
-    await manager.add_player(sid)
+    await manager.add_to_lobby(sid)
 
 
 @sio.on(ClientEvent.JOIN_GAME)
@@ -32,11 +32,19 @@ async def handle_join_game(sid: str, data: dict):
     await manager.join_game(sid, event_data)
 
 
+@sio.on(ClientEvent.SUBMIT_ANSWER)
+async def handle_submit_answer(sid: str, data: dict):
+    """Handles a player submitting an answer."""
+    print(f"[backend] {sid} submitted answer {data}")
+    event_data = SubmitAnswerData.from_dict(data)
+    await manager.submit_answer(sid, event_data)
+
+
 @sio.on(ClientEvent.DISCONNECT)
 async def handle_disconnect(sid: str):
     """Handles a player disconnecting from the server."""
     print(f"[backend] {sid} disconnected")
-    await manager.remove_player(sid)
+    await manager.remove_from_lobby(sid)
 
 
 @asynccontextmanager

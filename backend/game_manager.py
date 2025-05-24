@@ -1,19 +1,19 @@
 """Manages the game state."""
 
+import asyncio
 import uuid
 
-from data_models import GameData
-from questions import QuestionProvider
+from data_models import NewGameData, SubmitAnswerData
+from game import Game
 
 
 class GameManager:
     """Manages multiple game instances."""
 
     def __init__(self):
-        self._games: dict[str, GameData] = {}
-        self._provider = QuestionProvider()
+        self._games: dict[str, Game] = {}
 
-    def new_game(self, players: list[str]) -> GameData:
+    def new_game(self, players: list[str]) -> NewGameData:
         """Creates a new game.
 
         Args:
@@ -22,6 +22,17 @@ class GameManager:
         Returns:
             Game: The new game.
         """
-        game = GameData(str(uuid.uuid4()), players)
-        self._games[game.id] = game
-        return game
+        game_id = str(uuid.uuid4())
+        game = Game(game_id, players)
+        self._games[game_id] = game
+        asyncio.create_task(game.start())
+        return NewGameData(game_id)
+
+    def submit_answer(self, sid: str, data: SubmitAnswerData) -> None:
+        """Submits an answer to the game.
+
+        Args:
+            sid (str): The socket id of the player.
+            data (SubmitAnswerData): The data from the client.
+        """
+        self._games[data.game_id].submit_answer(sid, data.answer)

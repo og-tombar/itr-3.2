@@ -1,9 +1,11 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useGame } from "./game";
 
 export default function GamePage() {
   const { game_id } = useParams() as { game_id: string };
+  useGame();
 
   return (
     <main style={{ fontFamily: "sans-serif", padding: 20 }}>

@@ -20,9 +20,7 @@ class ServerEvent(str, Enum):
 
     LOBBY_UPDATE = "lobby_update"
     NEW_GAME = "new_game"
-    NEW_QUESTION = "new_question"
-    QUESTION_UPDATE = "question_update"
-    ANSWER_RESULT = "answer_result"
+    GAME_UPDATE = "game_update"
 
 
 class EventQueue:

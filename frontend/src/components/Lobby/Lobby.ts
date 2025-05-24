@@ -18,6 +18,10 @@ interface LobbyUpdate {
   should_start_game: boolean;
 }
 
+interface NewGame {
+  id: string;
+}
+
 export function useLobby() {
   const router = useRouter();
   const [players, setPlayers] = useState<string[]>([]);
@@ -35,10 +39,10 @@ export function useLobby() {
   }, []);
 
   const handleNewGame = useCallback(
-    (gameId: string) => {
-      console.log("[frontend] new_game", gameId);
-      router.push(`/game/${gameId}`);
-      socket.emit(ClientEvent.JOIN_GAME, { game_id: gameId });
+    (data: NewGame) => {
+      console.log("[frontend] new_game", data);
+      router.push(`/game/${data.id}`);
+      socket.emit(ClientEvent.JOIN_GAME, { game_id: data.id });
     },
     [router]
   );

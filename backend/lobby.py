@@ -10,7 +10,7 @@ class Lobby:
     """A simple in-memory lobby."""
 
     ROOM = 'lobby'
-    TIMEOUT_SECONDS = 30
+    TIMEOUT_SECONDS = 5
     MAX_PLAYERS = 4
 
     def __init__(self):
@@ -38,7 +38,7 @@ class Lobby:
         if not self._players:
             self._is_timer_active = False
 
-    async def get_players(self) -> list[str]:
+    def get_players(self) -> list[str]:
         """Gets the players in the lobby.
 
         Returns:
@@ -46,7 +46,7 @@ class Lobby:
         """
         return list(self._players)
 
-    async def clear(self) -> None:
+    def clear(self) -> None:
         """Clears the lobby."""
         self._is_timer_active = False
         self._players.clear()
