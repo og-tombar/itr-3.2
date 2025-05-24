@@ -1,20 +1,19 @@
-"""Manages the app."""
+"""Main application manager for coordinating services."""
 
 import socketio
-from data_models import (GameUpdateData, JoinGameData, LobbyUpdateData,
+from events.data import (GameUpdateData, JoinGameData, LobbyUpdateData,
                          SubmitAnswerData)
-from events import EventQueue, ServerEvent
-from game_manager import GameManager
-from lobby import Lobby
+from events.events import EventQueue, ServerEvent
+from game.manager import GameManager
+from lobby.lobby import Lobby
 
 
 class AppManager:
-    """Manages the app."""
+    """Manages the application and coordinates between services."""
 
     def __init__(self):
         self._lobby = Lobby()
         self._game_manager = GameManager()
-
         self.sio: socketio.AsyncServer | None = None
 
     async def run(self) -> None:

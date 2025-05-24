@@ -1,13 +1,13 @@
-"""A simple in-memory lobby."""
+"""Lobby management service."""
 
 import asyncio
 
-from data_models import LobbyUpdateData
-from events import EventQueue, ServerEvent
+from events.data import LobbyUpdateData
+from events.events import EventQueue, ServerEvent
 
 
 class Lobby:
-    """A simple in-memory lobby."""
+    """Manages the game lobby."""
 
     ROOM = 'lobby'
     TIMEOUT_SECONDS = 5
@@ -15,7 +15,7 @@ class Lobby:
 
     def __init__(self):
         self._players = set[str]()
-        self._time_remaining = Lobby.TIMEOUT_SECONDS
+        self._time_remaining = self.TIMEOUT_SECONDS
         self._is_timer_active = False
 
     async def add_player(self, sid: str) -> None:
@@ -28,7 +28,7 @@ class Lobby:
         if not self._is_timer_active:
             asyncio.create_task(self._start_timer())
 
-    async def remove_player(self, sid: str) -> None:
+    def remove_player(self, sid: str) -> None:
         """Removes a player from the lobby.
 
         Args:
@@ -53,7 +53,7 @@ class Lobby:
 
     async def _start_timer(self) -> None:
         """Starts the timer."""
-        self._time_remaining = Lobby.TIMEOUT_SECONDS
+        self._time_remaining = self.TIMEOUT_SECONDS
         self._is_timer_active = True
         while self._is_timer_active:
             await self._tick()
@@ -63,7 +63,7 @@ class Lobby:
     async def _tick(self) -> None:
         """Called when the timer ticks."""
         should_start_game = (
-            len(self._players) >= Lobby.MAX_PLAYERS
+            len(self._players) >= self.MAX_PLAYERS
             or (self._time_remaining <= 0 < len(self._players))
         )
         data = LobbyUpdateData(

@@ -1,14 +1,13 @@
-"""Events that can be emitted by the server."""
+"""Event queue and management for the application."""
 
 from asyncio import Queue
 from enum import Enum
 
-from data_models import EventData
+from events.data import EventData
 
 
 class ClientEvent(str, Enum):
     """The events that can be emitted by the client."""
-
     JOIN_LOBBY = "join_lobby"
     JOIN_GAME = "join_game"
     SUBMIT_ANSWER = "submit_answer"
@@ -17,7 +16,6 @@ class ClientEvent(str, Enum):
 
 class ServerEvent(str, Enum):
     """The events that can be emitted by the server."""
-
     LOBBY_UPDATE = "lobby_update"
     NEW_GAME = "new_game"
     GAME_UPDATE = "game_update"

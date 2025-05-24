@@ -1,4 +1,4 @@
-"""Data models for the backend."""
+"""Data classes for events."""
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -7,10 +7,6 @@ from dataclasses import dataclass, field
 @dataclass
 class EventData(ABC):
     """The data associated with an event."""
-
-############################################################
-# Client event data
-############################################################
 
 
 @dataclass
@@ -46,10 +42,6 @@ class SubmitAnswerData(ClientEventData):
         return SubmitAnswerData(d["game_id"], d["answer"])
 
 
-############################################################
-# Server event data
-############################################################
-
 @dataclass
 class LobbyUpdateData(EventData):
     """The data associated with a lobby update event."""
@@ -74,24 +66,3 @@ class GameUpdateData(EventData):
     question_options: list[str] = field(default_factory=list)
     answers: dict[str, int] = field(default_factory=dict)
     time_remaining: int = 0
-
-
-############################################################
-# Server data models
-############################################################
-
-@dataclass
-class Player:
-    """The data for a player."""
-    id: str
-    score: int = 0
-    answer: int = -1
-
-
-@dataclass
-class Question:
-    """The data for a question. Includes the correct answer (do not send to clients)."""
-    id: str
-    text: str
-    options: list[str]
-    correct_index: int

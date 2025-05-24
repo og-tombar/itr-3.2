@@ -1,45 +1,12 @@
-"""A game of trivia."""
+"""Game management service."""
 
 import asyncio
-from dataclasses import dataclass
-from enum import Enum
-from typing import Callable, Generator
+from typing import Generator
 
-from data_models import GameUpdateData, Player, Question
-from events import EventQueue, ServerEvent
-from questions import QuestionProvider
-
-
-class GamePhase(str, Enum):
-    """The phase of a game."""
-    GAME_STARTED = "game_started"
-    AWAITING_ANSWERS = "awaiting_answers"
-    ROUND_ENDED = "round_ended"
-    GAME_ENDED = "game_ended"
-    GAME_EXIT = "game_exit"
-
-    def get_duration(self) -> int:
-        """Gets the duration of a phase.
-
-        Returns:
-            int: The duration of the phase.
-        """
-        match self:
-            case GamePhase.GAME_STARTED: return 3
-            case GamePhase.AWAITING_ANSWERS: return 3
-            case GamePhase.ROUND_ENDED: return 3
-            case GamePhase.GAME_ENDED: return 3
-            case _: return 0
-
-
-@dataclass
-class Phase:
-    """The data for a game phase."""
-    title: GamePhase
-    time_remaining: int = 0
-    setup: Callable[[], None] = lambda: None
-    teardown: Callable[[], None] = lambda: None
-    should_stop: Callable[[], bool] = lambda: False
+from events.data import GameUpdateData
+from events.events import EventQueue, ServerEvent
+from game.models import GamePhase, Phase, Player, Question
+from questions.questions import QuestionDB
 
 
 class Game:
@@ -48,7 +15,7 @@ class Game:
     def __init__(self, game_id: str, players: list[str]):
         self._id = game_id
         self._players = {p: Player(p) for p in players}
-        self._questions = iter(QuestionProvider.get_questions())
+        self._questions = iter(QuestionDB.get_questions())
         self._next_question: Question | None = None
         self._phase: Phase | None = None
 

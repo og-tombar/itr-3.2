@@ -1,14 +1,14 @@
-"""Manages the game state."""
+"""Game manager for managing multiple game instances."""
 
 import asyncio
 import uuid
 
-from data_models import NewGameData, SubmitAnswerData
-from game import Game
+from events.data import NewGameData, SubmitAnswerData
+from game.game import Game
 
 
 class GameManager:
-    """Manages multiple game instances."""
+    """Manager for managing multiple game instances."""
 
     def __init__(self):
         self._games: dict[str, Game] = {}
@@ -20,7 +20,7 @@ class GameManager:
             players (list[str]): The players in the game.
 
         Returns:
-            Game: The new game.
+            NewGameData: The new game data.
         """
         game_id = str(uuid.uuid4())
         game = Game(game_id, players)
@@ -28,7 +28,7 @@ class GameManager:
         asyncio.create_task(game.start())
         return NewGameData(game_id)
 
-    def submit_answer(self, sid: str, data: SubmitAnswerData) -> None:
+    async def submit_answer(self, sid: str, data: SubmitAnswerData) -> None:
         """Submits an answer to the game.
 
         Args:
