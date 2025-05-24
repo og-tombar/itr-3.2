@@ -1,0 +1,15 @@
+.chatContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chatContainer {
+    bottom: 15px;
+    right: 15px;
+  }
+}
