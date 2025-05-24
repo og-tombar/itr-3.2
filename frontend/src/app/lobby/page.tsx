@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { useLobby } from "./Lobby";
-import "./Lobby.css";
+import { useLobby } from "./hooks/useLobby";
+import "./lobby.css";
 
 export default function Lobby() {
   const { timeRemaining, handleJoin } = useLobby();

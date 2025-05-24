@@ -1,26 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import socket from "../../socket";
 import { useRouter } from "next/navigation";
-
-enum ClientEvent {
-  JOIN_LOBBY = "join_lobby",
-  JOIN_GAME = "join_game",
-}
-
-enum ServerEvent {
-  LOBBY_UPDATE = "lobby_update",
-  NEW_GAME = "new_game",
-}
-
-interface LobbyUpdate {
-  players: string[];
-  time_remaining: number;
-  should_start_game: boolean;
-}
-
-interface NewGame {
-  id: string;
-}
+import socket from "../../../shared/socket";
+import { ClientEvent, ServerEvent } from "../../../shared/events";
+import { LobbyUpdate, NewGame } from "../types";
 
 export function useLobby() {
   const router = useRouter();
