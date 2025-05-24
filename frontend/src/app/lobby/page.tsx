@@ -2,26 +2,51 @@
 
 import React from "react";
 import { useLobby } from "./hooks/useLobby";
-import "./lobby.css";
 
 export default function Lobby() {
   const { timeRemaining, handleJoin } = useLobby();
 
   return (
-    <div className="lobbyContainer">
-      <h1 className="mainTitle">Takooh</h1>
-      <div className="timer">
-        <span>{timeRemaining}</span>
+    <div className="container-fullscreen">
+      <h1 className="title-main animate-bounce">Takooh</h1>
+
+      <div
+        style={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          width: "150px",
+          height: "150px",
+          background: "rgba(255, 255, 255, 0.9)",
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "var(--shadow-medium)",
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: "4rem",
+            fontWeight: "bold",
+            color: "var(--primary-purple)",
+          }}
+        >
+          {timeRemaining}
+        </span>
       </div>
-      <div className="mainContent">
-        <button className="joinButton" onClick={handleJoin}>
+
+      <div className="flex-column text-center">
+        <button className="btn btn-primary btn-large" onClick={handleJoin}>
           Join Game
         </button>
       </div>
-      <div className="decorativeElements">
-        <div className="bubble bubble1"></div>
-        <div className="bubble bubble2"></div>
-        <div className="bubble bubble3"></div>
+
+      <div className="decorative-elements">
+        <div className="bubble bubble-1"></div>
+        <div className="bubble bubble-2"></div>
+        <div className="bubble bubble-3"></div>
       </div>
     </div>
   );
