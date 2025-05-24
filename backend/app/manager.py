@@ -51,7 +51,7 @@ class AppManager:
         """
         print("[app_manager] remove_from_lobby", sid)
         await self.sio.leave_room(sid, Lobby.ROOM)
-        await self._lobby.remove_player(sid)
+        self._lobby.remove_player(sid)
 
     async def join_game(self, sid: str, data: JoinGameData) -> None:
         """Joins the player to the game.

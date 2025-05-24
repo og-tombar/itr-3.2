@@ -68,7 +68,7 @@ class SocketHandlers:
         await SocketHandlers.MANAGER.submit_answer(sid, event_data)
 
     @staticmethod
-    async def handle_disconnect(sid: str, _: dict):
+    async def handle_disconnect(sid: str):
         """Handles a player disconnecting from the server.
 
         Args:
