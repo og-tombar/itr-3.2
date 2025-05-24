@@ -136,7 +136,7 @@ body {
 
 .btn-large {
   padding: var(--space-md) var(--space-xl);
-  font-size: 1.5rem;
+  font-size: 3rem;
 }
 
 .btn-medium {
@@ -152,11 +152,12 @@ body {
 /* Typography */
 .title-main {
   font-family: var(--font-heading);
-  font-size: 4rem;
+  font-size: 12rem;
   color: var(--white);
   text-shadow: 3px 3px 0 var(--accent-red), 6px 6px 0 var(--accent-teal);
   text-align: center;
   margin: var(--space-lg) 0;
+  margin-bottom: 100px;
 }
 
 .title-large {
@@ -445,7 +446,7 @@ body {
   }
 
   .title-main {
-    font-size: 3rem;
+    font-size: 8rem;
   }
 
   .title-large {
