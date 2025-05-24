@@ -1,10 +1,10 @@
-import { GameUpdate } from "../../types";
+import { GameUpdate } from "@/app/game/types";
 
-interface GameExitPhaseProps {
+interface GameExitScreenProps {
   gameState: GameUpdate;
 }
 
-export default function GameExitPhase({ gameState }: GameExitPhaseProps) {
+export default function GameExitScreen({ gameState }: GameExitScreenProps) {
   return (
     <div className="container-fullscreen">
       <div

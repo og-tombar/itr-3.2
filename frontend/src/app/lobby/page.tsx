@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLobby } from "./hooks/useLobby";
-import Countdown from "@/components/Countdown/Countdown";
+import Countdown from "@/components/countdown/Countdown";
 
 export default function Lobby() {
   const { timeRemaining, handleJoin } = useLobby();

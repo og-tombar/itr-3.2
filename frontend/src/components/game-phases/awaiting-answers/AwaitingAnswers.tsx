@@ -1,14 +1,14 @@
-import { GameUpdate } from "../../types";
+import { GameUpdate } from "@/app/game/types";
 
-interface AwaitingAnswersPhaseProps {
+interface AwaitingAnswersScreenProps {
   gameState: GameUpdate;
   onAnswerClick?: (optionIndex: number) => void;
 }
 
-export default function AwaitingAnswersPhase({
+export default function AwaitingAnswersScreen({
   gameState,
   onAnswerClick,
-}: AwaitingAnswersPhaseProps) {
+}: AwaitingAnswersScreenProps) {
   const handleAnswerClick = (optionIndex: number) => {
     if (onAnswerClick) {
       onAnswerClick(optionIndex);

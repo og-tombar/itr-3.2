@@ -1,10 +1,10 @@
-import { GameUpdate } from "../../types";
+import { GameUpdate } from "@/app/game/types";
 
-interface GameEndedPhaseProps {
+interface GameEndedScreenProps {
   gameState: GameUpdate;
 }
 
-export default function GameEndedPhase({ gameState }: GameEndedPhaseProps) {
+export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
   const sortedScores = Object.entries(gameState.scores).sort(
     ([, a], [, b]) => b - a
   );

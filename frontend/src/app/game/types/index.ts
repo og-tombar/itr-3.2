@@ -8,7 +8,7 @@ export enum GamePhase {
 
 export interface GameUpdate {
   id: string;
-  phase: GamePhase;
+  phase: string;
   scores: Record<string, number>;
   question_text: string;
   question_options: string[];

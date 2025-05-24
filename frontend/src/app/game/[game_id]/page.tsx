@@ -1,34 +1,33 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useGame } from "../../game/hooks/useGame";
-import GamePhaseRenderer from "../components/GamePhaseRenderer";
+import { GamePhase } from "../types";
+import GameStartedScreen from "@/components/game-phases/game-started/GameStarted";
+import AwaitingAnswersScreen from "@/components/game-phases/awaiting-answers/AwaitingAnswers";
+import GameEndedScreen from "@/components/game-phases/game-ended/GameEnded";
+import GameExitScreen from "@/components/game-phases/game-exit/GameExit";
+import RoundEndedScreen from "@/components/game-phases/round-ended/RoundEnded";
+import { useGame } from "../hooks/useGame";
 
-export default function Game() {
-  const { game_id } = useParams() as { game_id: string };
+export default function GameScreen() {
   const { gameState } = useGame();
-
-  const handleAnswerClick = (optionIndex: number) => {
-    // TODO: Implement answer handling logic later
-    console.log(`Answer ${optionIndex} clicked`);
-  };
-
   if (!gameState) {
-    return (
-      <div style={{ fontFamily: "sans-serif", padding: 20 }}>
-        <h1>Game Started!</h1>
-        <p>
-          Your game ID is <strong>{game_id}</strong>
-        </p>
-        <p>Waiting for game updates...</p>
-      </div>
-    );
+    return <GameStartedScreen />;
   }
 
-  return (
-    <GamePhaseRenderer
-      gameState={gameState}
-      onAnswerClick={handleAnswerClick}
-    />
-  );
+  switch (gameState.phase) {
+    case GamePhase.GAME_STARTED:
+      return <GameStartedScreen />;
+
+    case GamePhase.AWAITING_ANSWERS:
+      return <AwaitingAnswersScreen gameState={gameState} />;
+
+    case GamePhase.ROUND_ENDED:
+      return <RoundEndedScreen gameState={gameState} />;
+
+    case GamePhase.GAME_ENDED:
+      return <GameEndedScreen gameState={gameState} />;
+
+    case GamePhase.GAME_EXIT:
+      return <GameExitScreen gameState={gameState} />;
+  }
 }

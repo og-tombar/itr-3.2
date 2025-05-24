@@ -1,10 +1,10 @@
-import { GameUpdate } from "../../types";
+import { GameUpdate } from "@/app/game/types";
 
-interface RoundEndedPhaseProps {
+interface RoundEndedScreenProps {
   gameState: GameUpdate;
 }
 
-export default function RoundEndedPhase({ gameState }: RoundEndedPhaseProps) {
+export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
   return (
     <div className="container-fullscreen">
       <div
