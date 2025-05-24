@@ -87,7 +87,7 @@ class Game:
         """Updates the game state and yields the current state."""
         update = GameUpdateData(
             id=self._id,
-            title=self._phase.title,
+            phase=self._phase.title,
             scores=self._get_scores(),
             time_remaining=self._phase.time_remaining,
             answers=self._get_answers(),

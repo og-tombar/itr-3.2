@@ -60,7 +60,7 @@ class NewGameData(EventData):
 class GameUpdateData(EventData):
     """The data associated with a game update event."""
     id: str
-    title: str
+    phase: str
     scores: dict[str, int]
     question_text: str = ""
     question_options: list[str] = field(default_factory=list)
