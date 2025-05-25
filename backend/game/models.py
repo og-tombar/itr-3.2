@@ -21,8 +21,8 @@ class GamePhase(str, Enum):
         """
         match self:
             case GamePhase.GAME_STARTED: return 3
-            case GamePhase.AWAITING_ANSWERS: return 60
-            case GamePhase.ROUND_ENDED: return 3
+            case GamePhase.AWAITING_ANSWERS: return 3
+            case GamePhase.ROUND_ENDED: return 60
             case GamePhase.GAME_ENDED: return 3
             case _: return 0
 

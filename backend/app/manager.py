@@ -146,7 +146,7 @@ class AppManager:
             game (GameUpdateData): The game data to emit.
         """
         print("[app_manager] game_update", game)
-        await self.sio.emit(ServerEvent.GAME_UPDATE, game.__dict__, room=game.id)
+        await self.sio.emit(ServerEvent.GAME_UPDATE, game.to_dict(), room=game.id)
 
     ############################################################
     # Helper methods

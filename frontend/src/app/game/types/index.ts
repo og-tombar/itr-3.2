@@ -6,12 +6,18 @@ export enum GamePhase {
   GAME_EXIT = "game_exit",
 }
 
+export interface Player {
+  sid: string;
+  name: string;
+  score: number;
+  answer: number;
+}
+
 export interface GameUpdate {
   id: string;
   phase: string;
-  scores: Record<string, number>;
+  players: Record<string, Player>;
   question_text: string;
   question_options: string[];
-  answers: Record<string, number>;
   time_remaining: number;
 }

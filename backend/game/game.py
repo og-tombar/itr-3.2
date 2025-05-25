@@ -96,9 +96,8 @@ class Game:
         update = GameUpdateData(
             id=self._id,
             phase=self._phase.title,
-            scores=self._get_scores(),
+            players=self._players,
             time_remaining=self._phase.time_remaining,
-            answers=self._get_answers(),
         )
         if self._phase.title == GamePhase.AWAITING_ANSWERS:
             update.question_text = self._next_question.text

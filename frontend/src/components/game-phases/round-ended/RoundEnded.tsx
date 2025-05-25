@@ -1,8 +1,4 @@
-import { GameUpdate } from "@/app/game/types";
-
-interface RoundEndedScreenProps {
-  gameState: GameUpdate;
-}
+import { RoundEndedScreenProps } from "./types";
 
 export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
   return (
@@ -54,17 +50,17 @@ export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
         <div style={{ marginBottom: "var(--space-lg)" }}>
           <h3 className="title-medium">🏆 Current Scores:</h3>
           <div className="info-panel">
-            {Object.keys(gameState.scores).length > 0 ? (
-              Object.entries(gameState.scores)
-                .sort(([, a], [, b]) => b - a) // Sort by score descending
-                .map(([player, score], index) => (
+            {Object.keys(gameState.players).length > 0 ? (
+              Object.entries(gameState.players)
+                .sort(([, a], [, b]) => b.score - a.score) // Sort by score descending
+                .map(([player, playerData], index) => (
                   <div
                     key={player}
                     className="flex-between"
                     style={{
                       padding: "var(--space-md) 0",
                       borderBottom:
-                        index < Object.keys(gameState.scores).length - 1
+                        index < Object.keys(gameState.players).length - 1
                           ? "2px solid var(--light-gray)"
                           : "none",
                     }}
@@ -89,7 +85,7 @@ export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
                         padding: "var(--space-sm) var(--space-md)",
                       }}
                     >
-                      {score} pts
+                      {playerData.score} pts
                     </span>
                   </div>
                 ))
@@ -99,31 +95,29 @@ export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
           </div>
         </div>
 
-        {Object.keys(gameState.answers).length > 0 && (
+        {Object.keys(gameState.players).length > 0 && (
           <div style={{ marginBottom: "var(--space-lg)" }}>
             <h3 className="title-small">✅ Player Answers:</h3>
             <div className="info-panel">
-              {Object.entries(gameState.answers).map(
-                ([player, answerIndex]) => (
-                  <div
-                    key={player}
-                    className="flex-between"
-                    style={{ padding: "var(--space-xs) 0" }}
-                  >
-                    <span className="text-body">{player}:</span>
-                    <span className="badge badge-warning">
-                      {String.fromCharCode(65 + answerIndex)}.{" "}
-                      {gameState.question_options[answerIndex]?.substring(
-                        0,
-                        25
-                      )}
-                      {gameState.question_options[answerIndex]?.length > 25
-                        ? "..."
-                        : ""}
-                    </span>
-                  </div>
-                )
-              )}
+              {Object.entries(gameState.players).map(([player, playerData]) => (
+                <div
+                  key={player}
+                  className="flex-between"
+                  style={{ padding: "var(--space-xs) 0" }}
+                >
+                  <span className="text-body">{player}:</span>
+                  <span className="badge badge-warning">
+                    {String.fromCharCode(65 + playerData.answer)}.{" "}
+                    {gameState.question_options[playerData.answer]?.substring(
+                      0,
+                      25
+                    )}
+                    {gameState.question_options[playerData.answer]?.length > 25
+                      ? "..."
+                      : ""}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}

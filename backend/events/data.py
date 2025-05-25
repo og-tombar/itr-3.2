@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from player.player import Player
+
 
 @dataclass
 class EventData(ABC):
@@ -79,11 +81,20 @@ class GameUpdateData(EventData):
     """The data associated with a game update event."""
     id: str
     phase: str
-    scores: dict[str, int]
+    players: dict[str, Player] = field(default_factory=dict)
     question_text: str = ""
     question_options: list[str] = field(default_factory=list)
-    answers: dict[str, int] = field(default_factory=dict)
     time_remaining: int = 0
+
+    def to_dict(self) -> dict:
+        """Convert the game update data to a dictionary.
+
+        Returns:
+            dict: The game update data as a dictionary.
+        """
+        d = self.__dict__.copy()
+        d["players"] = {sid: p.__dict__ for sid, p in self.players.items()}
+        return d
 
 
 @dataclass
