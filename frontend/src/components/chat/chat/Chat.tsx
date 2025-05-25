@@ -3,7 +3,7 @@
 import styles from "./Chat.module.css";
 import ChatToggle from "../chat-toggle/ChatToggle";
 import { useChatToggle } from "../chat-toggle/useChatToggle";
-import ChatBox from "../chat-box/ChatBox";
+import ChatBox from "../chat-box";
 
 export default function Chat() {
   const { isOpen, onToggleChat } = useChatToggle();
@@ -11,7 +11,9 @@ export default function Chat() {
   return (
     <aside className={styles.chatContainer} aria-label="Game chat">
       <ChatToggle isOpen={isOpen} toggleChat={onToggleChat} />
-      {isOpen && <ChatBox />}
+      <div hidden={!isOpen}>
+        <ChatBox />
+      </div>
     </aside>
   );
 }

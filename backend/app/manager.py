@@ -2,7 +2,7 @@
 
 import socketio
 from events.data import (GameUpdateData, JoinGameData, LobbyUpdateData,
-                         SubmitAnswerData)
+                         MessageData, SubmitAnswerData)
 from events.events import EventQueue, ServerEvent
 from game.manager import GameManager
 from lobby.lobby import Lobby
@@ -73,6 +73,16 @@ class AppManager:
         """
         print("[app_manager] submit_answer", sid, data)
         await self._game_manager.submit_answer(sid, data)
+
+    async def send_message(self, data: MessageData) -> None:
+        """Sends a message to the players.
+
+        Args:
+            sid (str): The socket id of the player.
+            data (MessageData): The data to emit.
+        """
+        print("[app_manager] send_message", data)
+        await self.sio.emit(ServerEvent.MESSAGE, data.__dict__)
 
     ############################################################
     # Server event handlers

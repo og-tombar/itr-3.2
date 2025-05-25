@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime
 
 
 @dataclass
@@ -66,3 +67,18 @@ class GameUpdateData(EventData):
     question_options: list[str] = field(default_factory=list)
     answers: dict[str, int] = field(default_factory=dict)
     time_remaining: int = 0
+
+
+@dataclass
+class MessageData(EventData):
+    """The data associated with a message event."""
+    id: str
+    sender_id: str
+    username: str
+    message: str
+    timestamp: datetime = field(default_factory=datetime.now)
+
+    @staticmethod
+    def from_dict(d: dict) -> "MessageData":
+        """Convert the data to a dictionary."""
+        return MessageData(d["id"], d["sender_id"], d["username"], d["message"], d["timestamp"])

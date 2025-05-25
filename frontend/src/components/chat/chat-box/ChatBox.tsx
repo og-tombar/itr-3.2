@@ -1,17 +1,9 @@
-"use client";
-
-import { useChatBox } from "./useChatBox";
+import useChatBox, { formatTime } from "./useChatBox";
 import styles from "./ChatBox.module.css";
 
 export default function ChatBox() {
-  const {
-    message,
-    setMessage,
-    messages,
-    formatTime,
-    handleSendMessage,
-    messagesEndRef,
-  } = useChatBox();
+  const { message, setMessage, messages, handleSendMessage, msgBoxRef } =
+    useChatBox();
 
   return (
     <div className={styles.chatBox} role="dialog" aria-labelledby="chat-title">
@@ -22,6 +14,7 @@ export default function ChatBox() {
       </header>
 
       <div
+        ref={msgBoxRef}
         className={styles.chatMessages}
         role="log"
         aria-live="polite"
@@ -31,19 +24,14 @@ export default function ChatBox() {
           <div key={msg.id} className={styles.chatMessage} role="listitem">
             <div className={styles.messageHeader}>
               <span className={styles.messageUsername}>{msg.username}</span>
-              <time
-                className={styles.messageTime}
-                dateTime={msg.timestamp.toISOString()}
-              >
+              <time dateTime={msg.timestamp} className={styles.messageTime}>
                 {formatTime(msg.timestamp)}
               </time>
             </div>
             <div className={styles.messageContent}>{msg.message}</div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
-
       <form className={styles.chatInputForm} onSubmit={handleSendMessage}>
         <label htmlFor="chat-input" className={styles.srOnly}>
           Type your message

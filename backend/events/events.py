@@ -12,6 +12,7 @@ class ClientEvent(str, Enum):
     JOIN_GAME = "join_game"
     SUBMIT_ANSWER = "submit_answer"
     DISCONNECT = "disconnect"
+    MESSAGE = "client_message"
 
 
 class ServerEvent(str, Enum):
@@ -19,6 +20,7 @@ class ServerEvent(str, Enum):
     LOBBY_UPDATE = "lobby_update"
     NEW_GAME = "new_game"
     GAME_UPDATE = "game_update"
+    MESSAGE = "server_message"
 
 
 class EventQueue:

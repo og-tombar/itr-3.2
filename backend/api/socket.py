@@ -2,7 +2,7 @@
 
 import socketio
 from app.manager import AppManager
-from events.data import JoinGameData, SubmitAnswerData
+from events.data import JoinGameData, MessageData, SubmitAnswerData
 from events.events import ClientEvent
 
 
@@ -31,6 +31,7 @@ class SocketHandlers:
         sio.on(ClientEvent.JOIN_GAME)(SocketHandlers.handle_join_game)
         sio.on(ClientEvent.SUBMIT_ANSWER)(SocketHandlers.handle_submit_answer)
         sio.on(ClientEvent.DISCONNECT)(SocketHandlers.handle_disconnect)
+        sio.on(ClientEvent.MESSAGE)(SocketHandlers.handle_message)
 
     @staticmethod
     async def handle_join_lobby(sid: str, _: dict):
@@ -66,6 +67,18 @@ class SocketHandlers:
         print(f"[backend] {sid} submitted answer {data}")
         event_data = SubmitAnswerData.from_dict(data)
         await SocketHandlers.MANAGER.submit_answer(sid, event_data)
+
+    @staticmethod
+    async def handle_message(_: str, data: dict):
+        """Handles a player sending a message.
+
+        Args:
+            sid (str): The socket ID of the player.
+            data (dict): The data from the client.
+        """
+        print(f"[backend] sent message {data}")
+        event_data = MessageData.from_dict(data)
+        await SocketHandlers.MANAGER.send_message(event_data)
 
     @staticmethod
     async def handle_disconnect(sid: str):
