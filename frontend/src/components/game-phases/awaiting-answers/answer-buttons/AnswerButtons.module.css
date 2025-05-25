@@ -1,0 +1,40 @@
+.answersContainer {
+  margin-top: auto;
+  margin-bottom: var(--space-xl);
+  width: 100%;
+  max-width: 600px;
+}
+
+.buttonGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.answerButton {
+  min-height: 120px;
+  font-size: 1.3rem;
+  padding: var(--space-lg);
+  border: 3px solid var(--white);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.answerButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.answerButton:active {
+  transform: scale(0.98);
+}
+
+.buttonText {
+  font-weight: bold;
+}
