@@ -5,7 +5,7 @@ from typing import Generator
 
 from events.data import GameUpdateData
 from events.events import EventQueue, ServerEvent
-from game.models import GamePhase, Phase, Question
+from game.models import GamePhase, Phase
 from player.player import Player
 from questions.questions import QuestionDB
 
@@ -17,7 +17,7 @@ class Game:
         self._id = game_id
         self._players = players
         self._questions = iter(QuestionDB.get_questions())
-        self._next_question: Question | None = None
+        self._current_question = next(self._questions, None)
         self._phase: Phase | None = None
 
     #################################################
@@ -57,12 +57,12 @@ class Game:
             Generator[Phase, None, None]: The phases of the game.
         """
         yield self._make_phase(GamePhase.GAME_STARTED)
-        self._next_question = next(self._questions, None)
-        while self._next_question is not None:
+        while self._current_question is not None:
             yield self._make_phase(GamePhase.AWAITING_ANSWERS)
-            self._next_question = next(self._questions, None)
-            if self._next_question is not None:
+            next_question = next(self._questions, None)
+            if next_question is not None:
                 yield self._make_phase(GamePhase.ROUND_ENDED)
+            self._current_question = next_question
         yield self._make_phase(GamePhase.GAME_ENDED)
         yield self._make_phase(GamePhase.GAME_EXIT)
 
@@ -93,15 +93,19 @@ class Game:
 
     async def _update(self) -> None:
         """Updates the game state and yields the current state."""
+        question_text = ""
+        question_options = []
+        if self._current_question is not None:
+            question_text = self._current_question.text
+            question_options = self._current_question.options
         update = GameUpdateData(
             id=self._id,
             phase=self._phase.title,
             players=self._players,
+            question_text=question_text,
+            question_options=question_options,
             time_remaining=self._phase.time_remaining,
         )
-        if self._phase.title == GamePhase.AWAITING_ANSWERS:
-            update.question_text = self._next_question.text
-            update.question_options = self._next_question.options
         await EventQueue.put(ServerEvent.GAME_UPDATE, update)
 
     async def _tick(self) -> None:
@@ -120,7 +124,7 @@ class Game:
     def _update_scores(self) -> None:
         """Updates the scores for each player."""
         for p in self._players.values():
-            p.score += p.answer == self._next_question.correct_index
+            p.score += p.answer == self._current_question.correct_index
 
     def _get_answers(self) -> dict[str, int]:
         """Gets the answers for each player.

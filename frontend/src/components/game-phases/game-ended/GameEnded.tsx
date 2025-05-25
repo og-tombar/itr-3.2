@@ -5,8 +5,8 @@ interface GameEndedScreenProps {
 }
 
 export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
-  const sortedScores = Object.entries(gameState.scores).sort(
-    ([, a], [, b]) => b - a
+  const sortedScores = Object.entries(gameState.players).sort(
+    ([, a], [, b]) => b.score - a.score
   );
   const winner = sortedScores[0];
 
@@ -66,7 +66,7 @@ export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
                 color: "var(--dark-gray)",
               }}
             >
-              Final Score: {winner[1]} points
+              Final Score: {winner[1].score} points
             </div>
           </div>
         )}
@@ -75,7 +75,7 @@ export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
           <h3 className="title-medium">🏅 Final Leaderboard</h3>
           <div className="info-panel">
             {sortedScores.length > 0 ? (
-              sortedScores.map(([player, score], index) => (
+              sortedScores.map(([player, playerData], index) => (
                 <div
                   key={player}
                   className="flex-between"
@@ -117,7 +117,7 @@ export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
                       padding: "var(--space-sm) var(--space-md)",
                     }}
                   >
-                    {score} pts
+                    {playerData.score} pts
                   </span>
                 </div>
               ))
