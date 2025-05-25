@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import socket from "../../../shared/socket";
-import { ClientEvent, ServerEvent } from "../../../shared/events";
-import { LobbyUpdate, NewGame } from "../types";
+import socket from "../../shared/socket";
+import { ClientEvent, ServerEvent } from "../../shared/events";
+import { LobbyUpdate, NewGame } from "./types";
 
 export function useLobby() {
   const router = useRouter();
