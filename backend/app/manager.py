@@ -87,8 +87,8 @@ class AppManager:
         """
         player = self._player_manager.get_player(sid)
         await self.sio.leave_room(sid, player.room)
-        await self._lobby.remove_player(player)
-        await self._game_manager.remove_player(player)
+        self._lobby.remove_player(player)
+        self._game_manager.remove_player(player)
         self._player_manager.remove_player(sid)
 
     ############################################################

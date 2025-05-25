@@ -35,4 +35,8 @@ class GameManager:
         Args:
             player (Player): The player to remove.
         """
-        self._games[player.room].remove_player(player)
+        game = self._games.get(player.room)
+        if game:
+            game.remove_player(player)
+            if game.is_empty():
+                self._games.pop(player.room)

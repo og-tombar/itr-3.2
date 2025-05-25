@@ -38,6 +38,14 @@ class Game:
         """
         self._players.pop(player.sid)
 
+    def is_empty(self) -> bool:
+        """Checks if the game is empty.
+
+        Returns:
+            bool: True if the game is empty, False otherwise.
+        """
+        return len(self._players) == 0
+
     #################################################
     # Private methods
     #################################################

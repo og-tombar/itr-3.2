@@ -83,11 +83,11 @@ class SocketHandlers:
         await SocketHandlers.MANAGER.send_message(event_data)
 
     @staticmethod
-    async def handle_disconnect(sid: str) -> None:
+    async def handle_disconnect(sid: str, _: dict) -> None:
         """Handles a player disconnecting from the server.
 
         Args:
             sid (str): The socket ID of the player.
         """
         print(f"[backend] {sid} disconnected")
-        await SocketHandlers.MANAGER.remove_from_lobby(sid)
+        await SocketHandlers.MANAGER.disconnect(sid)
