@@ -28,23 +28,47 @@ class SocketHandlers:
     def _setup() -> None:
         """Set up all socket.io event handlers."""
         sio = SocketHandlers.SERVER
+        sio.on(ClientEvent.GET_PLAYER)(SocketHandlers.handle_get_player)
         sio.on(ClientEvent.NEW_PLAYER)(SocketHandlers.handle_new_player)
+        sio.on(ClientEvent.JOIN_LOBBY)(SocketHandlers.handle_join_lobby)
         sio.on(ClientEvent.JOIN_GAME)(SocketHandlers.handle_join_game)
         sio.on(ClientEvent.SUBMIT_ANSWER)(SocketHandlers.handle_submit_answer)
         sio.on(ClientEvent.DISCONNECT)(SocketHandlers.handle_disconnect)
         sio.on(ClientEvent.MESSAGE)(SocketHandlers.handle_message)
 
     @staticmethod
+    async def handle_get_player(sid: str, _: dict) -> None:
+        """Handles a player getting their player info.
+
+        Args:
+            sid (str): The socket ID of the player.
+            _ (dict): The data from the client.
+        """
+        print(f"[backend] {sid} got player info")
+        await SocketHandlers.MANAGER.get_player_info(sid)
+
+    @staticmethod
     async def handle_new_player(sid: str, data: dict) -> None:
-        """Handles a new player entering the lobby.
+        """Handles a new player submitting their name.
 
         Args:
             sid (str): The socket ID of the player.
             data (dict): The data from the client.
         """
-        print(f"[backend] {sid} joined lobby")
+        print(f"[backend] {sid} new player")
         event_data = NewPlayerData.from_dict(data)
         await SocketHandlers.MANAGER.new_player(sid, event_data)
+
+    @staticmethod
+    async def handle_join_lobby(sid: str, _: dict) -> None:
+        """Handles a player joining the lobby.
+
+        Args:
+            sid (str): The socket ID of the player.
+            _ (dict): The data from the client.
+        """
+        print(f"[backend] {sid} joined lobby")
+        await SocketHandlers.MANAGER.join_lobby(sid)
 
     @staticmethod
     async def handle_join_game(sid: str, data: dict) -> None:

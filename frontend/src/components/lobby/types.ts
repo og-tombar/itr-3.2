@@ -1,4 +1,11 @@
+// Client event types
 export interface NewPlayer {
+  name: string;
+}
+
+// Server event types
+export interface PlayerInfo {
+  id: string;
   name: string;
 }
 

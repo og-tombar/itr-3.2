@@ -1,5 +1,6 @@
 """Player management service."""
 
+from events.data import PlayerInfoData
 from player.player import Player
 
 
@@ -7,7 +8,7 @@ class PlayerManager:
     """Manages the players in the game."""
 
     def __init__(self):
-        self._players = {}
+        self._players: dict[str, Player] = {}
 
     def add_player(self, sid: str, name: str) -> Player:
         """Adds a player to the manager.
@@ -41,3 +42,16 @@ class PlayerManager:
             sid (str): The socket id of the player.
         """
         self._players.pop(sid, None)
+
+    def get_player_info(self, sid: str) -> PlayerInfoData:
+        """Gets a player's info.
+
+        Args:
+            sid (str): The socket id of the player.
+
+        Returns:
+            PlayerInfoData: The player info data.
+        """
+        p = self._players.get(sid)
+        name = "" if p is None else p.name
+        return PlayerInfoData(sid, name)

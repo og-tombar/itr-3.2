@@ -8,7 +8,9 @@ from events.data import EventData
 
 class ClientEvent(str, Enum):
     """The events that can be emitted by the client."""
+    GET_PLAYER = "get_player"
     NEW_PLAYER = "new_player"
+    JOIN_LOBBY = "join_lobby"
     JOIN_GAME = "join_game"
     SUBMIT_ANSWER = "submit_answer"
     DISCONNECT = "disconnect"
@@ -17,6 +19,8 @@ class ClientEvent(str, Enum):
 
 class ServerEvent(str, Enum):
     """The events that can be emitted by the server."""
+    PLAYER_INFO = "player_info"
+    PLAYER_REGISTERED = "player_registered"
     LOBBY_UPDATE = "lobby_update"
     NEW_GAME = "new_game"
     GAME_UPDATE = "game_update"

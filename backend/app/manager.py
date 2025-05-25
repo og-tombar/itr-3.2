@@ -36,6 +36,15 @@ class AppManager:
     # Client event handlers
     ############################################################
 
+    async def get_player_info(self, sid: str) -> None:
+        """Gets a player's info.
+
+        Args:
+            sid (str): The socket id of the player.
+        """
+        info = self._player_manager.get_player_info(sid)
+        await self.sio.emit(ServerEvent.PLAYER_INFO, info.__dict__)
+
     async def new_player(self, sid: str, data: NewPlayerData) -> None:
         """Creates a new player and adds them to the lobby.
 
@@ -44,7 +53,17 @@ class AppManager:
             data (NewPlayerData): The data from the client.
         """
         print("[app_manager] new_player", sid, data)
-        player = self._player_manager.add_player(sid, data.name)
+        self._player_manager.add_player(sid, data.name)
+        await self._player_registered(sid)
+
+    async def join_lobby(self, sid: str) -> None:
+        """Joins the player to the lobby.
+
+        Args:
+            sid (str): The socket id of the player.
+        """
+        print("[app_manager] join_lobby", sid)
+        player = self._player_manager.get_player(sid)
         await self._add_to_lobby(player)
 
     async def join_game(self, sid: str, data: JoinGameData) -> None:
@@ -94,6 +113,14 @@ class AppManager:
     ############################################################
     # Server event handlers
     ############################################################
+
+    async def _player_registered(self, sid: str) -> None:
+        """Emits a player registered event to the players.
+
+        Args:
+            sid (str): The socket id of the player.
+        """
+        await self.sio.emit(ServerEvent.PLAYER_REGISTERED, sid, to=sid)
 
     async def _lobby_update(self, data: LobbyUpdateData) -> None:
         """Emits a lobby update to the players.

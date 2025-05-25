@@ -55,6 +55,13 @@ class SubmitAnswerData(ClientEventData):
 
 
 @dataclass
+class PlayerInfoData(EventData):
+    """The data associated with a player info event."""
+    id: str
+    name: str
+
+
+@dataclass
 class LobbyUpdateData(EventData):
     """The data associated with a lobby update event."""
     players: list[str]

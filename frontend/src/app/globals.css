@@ -149,6 +149,41 @@ body {
   font-size: 1rem;
 }
 
+/* Input Components */
+.lobby-input {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 2.5rem;
+  padding: var(--space-md) var(--space-lg);
+  border: 3px solid var(--white);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--dark-gray);
+  text-align: center;
+  box-shadow: var(--shadow-medium);
+  transition: all 0.2s ease;
+  outline: none;
+  margin-bottom: var(--space-lg);
+  width: 100%;
+  max-width: 500px;
+}
+
+.lobby-input::placeholder {
+  color: var(--medium-gray);
+  font-weight: 400;
+}
+
+.lobby-input:focus {
+  border-color: var(--accent-teal);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-heavy);
+}
+
+.lobby-input:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-heavy);
+}
+
 /* Typography */
 .title-main {
   font-family: var(--font-heading);
