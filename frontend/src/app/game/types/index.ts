@@ -19,5 +19,6 @@ export interface GameUpdate {
   players: Record<string, Player>;
   question_text: string;
   question_options: string[];
+  correct_answer: number;
   time_remaining: number;
 }

@@ -1,142 +1,107 @@
 import { RoundEndedScreenProps } from "./types";
+import socket from "@/shared/socket";
+import styles from "./RoundEnded.module.css";
 
 export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
+  // Get current player's answer to check if they were correct
+  const currentPlayerId = socket.id;
+  const currentPlayer = currentPlayerId
+    ? gameState.players[currentPlayerId]
+    : null;
+  const isCorrect =
+    currentPlayer && currentPlayer.answer === gameState.correct_answer;
+
+  // Get current player's standing
+  const sortedPlayers = Object.entries(gameState.players).sort(
+    ([, a], [, b]) => b.score - a.score
+  );
+
+  const currentPlayerStanding = currentPlayer
+    ? sortedPlayers.findIndex(([playerId]) => playerId === currentPlayerId) + 1
+    : null;
+
+  // Answer button colors (same as AwaitingAnswers)
+  const buttonColors = [
+    "var(--accent-red)",
+    "var(--accent-teal)",
+    "var(--accent-yellow)",
+    "var(--accent-green)",
+  ];
+
   return (
-    <div className="container-fullscreen">
-      <div
-        className="card card-large"
-        style={{ position: "relative", zIndex: 10, maxWidth: "900px" }}
-      >
-        <h1
-          className="title-large animate-pulse"
-          style={{
-            color: "var(--accent-green)",
-            textShadow: "2px 2px 0 var(--accent-yellow)",
-          }}
-        >
-          🎉 Round Complete! 🎉
-        </h1>
+    <div className={`container-fullscreen ${styles.container}`}>
+      {/* Main Content */}
+      <div className={styles.mainContent}>
+        {/* Title */}
+        <h1 className={styles.title}>Round Complete!</h1>
 
-        <div
-          className="badge badge-success"
-          style={{
-            fontSize: "1.2rem",
-            padding: "var(--space-sm) var(--space-lg)",
-            marginBottom: "var(--space-xl)",
-          }}
-        >
-          {gameState.phase}
-        </div>
-
-        {gameState.question_text && (
-          <div
-            className="info-panel-highlight"
-            style={{ marginBottom: "var(--space-lg)" }}
-          >
-            <h3 className="title-small">❓ Question:</h3>
-            <div
-              className="text-body"
-              style={{
-                fontStyle: "italic",
-                color: "var(--primary-purple)",
-                fontWeight: "600",
-              }}
-            >
-              {gameState.question_text}
-            </div>
-          </div>
-        )}
-
-        <div style={{ marginBottom: "var(--space-lg)" }}>
-          <h3 className="title-medium">🏆 Current Scores:</h3>
-          <div className="info-panel">
-            {Object.keys(gameState.players).length > 0 ? (
-              Object.entries(gameState.players)
-                .sort(([, a], [, b]) => b.score - a.score) // Sort by score descending
-                .map(([player, playerData], index) => (
-                  <div
-                    key={player}
-                    className="flex-between"
-                    style={{
-                      padding: "var(--space-md) 0",
-                      borderBottom:
-                        index < Object.keys(gameState.players).length - 1
-                          ? "2px solid var(--light-gray)"
-                          : "none",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "1.3rem",
-                        fontWeight: index === 0 ? "bold" : "normal",
-                        color:
-                          index === 0
-                            ? "var(--accent-yellow)"
-                            : "var(--dark-gray)",
-                      }}
-                    >
-                      {index === 0 ? "🏆 " : `${index + 1}. `}
-                      {player}
-                    </span>
-                    <span
-                      className="badge badge-primary"
-                      style={{
-                        fontSize: "1.4rem",
-                        padding: "var(--space-sm) var(--space-md)",
-                      }}
-                    >
-                      {playerData.score} pts
-                    </span>
-                  </div>
-                ))
-            ) : (
-              <em className="text-small">No scores available</em>
-            )}
-          </div>
-        </div>
-
-        {Object.keys(gameState.players).length > 0 && (
-          <div style={{ marginBottom: "var(--space-lg)" }}>
-            <h3 className="title-small">✅ Player Answers:</h3>
-            <div className="info-panel">
-              {Object.entries(gameState.players).map(([player, playerData]) => (
-                <div
-                  key={player}
-                  className="flex-between"
-                  style={{ padding: "var(--space-xs) 0" }}
-                >
-                  <span className="text-body">{player}:</span>
-                  <span className="badge badge-warning">
-                    {String.fromCharCode(65 + playerData.answer)}.{" "}
-                    {gameState.question_options[playerData.answer]?.substring(
-                      0,
-                      25
-                    )}
-                    {gameState.question_options[playerData.answer]?.length > 25
-                      ? "..."
-                      : ""}
-                  </span>
+        {/* Current Player Standing */}
+        {currentPlayerStanding && currentPlayer && (
+          <div className={styles.standingContainer}>
+            <div className={styles.standingDisplay}>
+              <div className={styles.standingIcon}>
+                {currentPlayerStanding === 1
+                  ? "🥇"
+                  : currentPlayerStanding === 2
+                  ? "🥈"
+                  : currentPlayerStanding === 3
+                  ? "🥉"
+                  : "🏅"}
+              </div>
+              <div className={styles.standingText}>
+                <div className={styles.standingPosition}>
+                  {currentPlayerStanding === 1
+                    ? "1st Place!"
+                    : currentPlayerStanding === 2
+                    ? "2nd Place!"
+                    : currentPlayerStanding === 3
+                    ? "3rd Place!"
+                    : `${currentPlayerStanding}th Place`}
                 </div>
-              ))}
+                <div className={styles.standingScore}>
+                  {currentPlayer.score} points
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {gameState.time_remaining > 0 && (
-          <div className="info-panel-highlight text-center animate-pulse">
-            <span
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                color: "var(--accent-green)",
-              }}
-            >
-              ⏱️ Next round starts in: {gameState.time_remaining}s
+        {/* Answer Feedback */}
+        <div className={styles.answerSection}>
+          <div
+            className={styles.feedbackContainer}
+            style={{
+              background: isCorrect
+                ? "linear-gradient(135deg, var(--accent-green), #d4edda)"
+                : "linear-gradient(135deg, var(--accent-red), #f8d7da)",
+            }}
+          >
+            <div className={styles.feedbackText}>
+              {isCorrect ? "Correct!" : "Incorrect"}
+            </div>
+          </div>
+
+          {!isCorrect && (
+            <div className={styles.correctAnswerLabel}>Correct Answer:</div>
+          )}
+          <div
+            className={styles.correctAnswerButton}
+            style={{
+              backgroundColor: buttonColors[gameState.correct_answer],
+              color:
+                gameState.correct_answer === 2
+                  ? "var(--dark-gray)"
+                  : "var(--white)",
+            }}
+          >
+            <span className={styles.answerText}>
+              {gameState.question_options[gameState.correct_answer]}
             </span>
           </div>
-        )}
+        </div>
       </div>
 
+      {/* Decorative Elements */}
       <div className="decorative-elements">
         <div className="bubble bubble-1"></div>
         <div className="bubble bubble-2"></div>

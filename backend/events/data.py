@@ -84,6 +84,7 @@ class GameUpdateData(EventData):
     players: dict[str, Player] = field(default_factory=dict)
     question_text: str = ""
     question_options: list[str] = field(default_factory=list)
+    correct_answer: int = -1
     time_remaining: int = 0
 
     def to_dict(self) -> dict:

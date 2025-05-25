@@ -98,12 +98,18 @@ class Game:
         if self._current_question is not None:
             question_text = self._current_question.text
             question_options = self._current_question.options
+
+        correct_answer = -1
+        if self._phase.title == GamePhase.ROUND_ENDED:
+            correct_answer = self._current_question.correct_index
+
         update = GameUpdateData(
             id=self._id,
             phase=self._phase.title,
             players=self._players,
             question_text=question_text,
             question_options=question_options,
+            correct_answer=correct_answer,
             time_remaining=self._phase.time_remaining,
         )
         await EventQueue.put(ServerEvent.GAME_UPDATE, update)
