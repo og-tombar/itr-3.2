@@ -11,13 +11,11 @@ import useNameInput from "../hooks/useNameInput";
 export default function LobbyScreen() {
   const { isRegistered } = usePlayerInfo();
   const { nameInput, onChangeName, onSubmitName } = useNameInput();
-  const { onJoinLobby, timeRemaining } = useJoinLobby();
+  const { onJoinLobby, isJoined, timeRemaining } = useJoinLobby();
 
   return (
     <div className="container-fullscreen">
       <h1 className="title-main animate-bounce">Takooh</h1>
-
-      {timeRemaining !== null && <Countdown timeRemaining={timeRemaining} />}
 
       <div className="flex-column text-center">
         {isRegistered === false && (
@@ -28,8 +26,12 @@ export default function LobbyScreen() {
           />
         )}
 
-        {isRegistered === true && (
+        {isRegistered === true && !isJoined && (
           <LargeButton label="Join Game" onClick={onJoinLobby} />
+        )}
+
+        {isJoined && timeRemaining !== null && (
+          <Countdown timeRemaining={timeRemaining} />
         )}
       </div>
 
