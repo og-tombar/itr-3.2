@@ -1,26 +1,12 @@
-import { GameUpdate } from "@/app/game/types";
 import Countdown from "@/components/countdown/Countdown";
 import QuestionDisplay from "./question-display/QuestionDisplay";
 import AnswerButtons from "./answer-buttons/AnswerButtons";
+import { AwaitingAnswersScreenProps } from "./types";
 import styles from "./AwaitingAnswers.module.css";
-
-interface AwaitingAnswersScreenProps {
-  gameState: GameUpdate;
-  onAnswerClick?: (optionIndex: number) => void;
-}
 
 export default function AwaitingAnswersScreen({
   gameState,
-  onAnswerClick,
 }: AwaitingAnswersScreenProps) {
-  const handleAnswerClick = (optionIndex: number) => {
-    if (onAnswerClick) {
-      onAnswerClick(optionIndex);
-    } else {
-      console.log(`Answer ${optionIndex} clicked`);
-    }
-  };
-
   return (
     <div className={`container-fullscreen ${styles.container}`}>
       {/* Countdown Timer */}
@@ -34,10 +20,7 @@ export default function AwaitingAnswersScreen({
         <QuestionDisplay questionText={gameState.question_text} />
 
         {/* Answer Buttons */}
-        <AnswerButtons
-          options={gameState.question_options}
-          onAnswerClick={handleAnswerClick}
-        />
+        <AnswerButtons options={gameState.question_options} />
       </div>
 
       {/* Decorative Elements */}

@@ -45,13 +45,12 @@ class JoinGameData(ClientEventData):
 @dataclass
 class SubmitAnswerData(ClientEventData):
     """The data associated with a submit answer event."""
-    game_id: str
     answer: int
 
     @staticmethod
     def from_dict(d: dict) -> "SubmitAnswerData":
         """Create a new submit answer data object from a dictionary."""
-        return SubmitAnswerData(d["game_id"], d["answer"])
+        return SubmitAnswerData(d["answer"])
 
 
 @dataclass

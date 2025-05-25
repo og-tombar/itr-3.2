@@ -9,7 +9,7 @@ export default function QuestionDisplay({
 }: QuestionDisplayProps) {
   return (
     <div className={styles.questionContainer}>
-      <h1 className={styles.questionText}>❓ {questionText}</h1>
+      <h1 className={styles.questionText}>{questionText}</h1>
     </div>
   );
 }

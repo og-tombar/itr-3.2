@@ -2,18 +2,19 @@
   margin-top: auto;
   margin-bottom: var(--space-xl);
   width: 100%;
-  max-width: 600px;
 }
 
 .buttonGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
+  place-items: center;
 }
 
 .answerButton {
   min-height: 120px;
-  font-size: 1.3rem;
+  width: 500px;
+  font-size: 2rem;
   padding: var(--space-lg);
   border: 3px solid var(--white);
   border-radius: var(--radius-lg);
@@ -26,13 +27,17 @@
   font-family: var(--font-body);
 }
 
-.answerButton:hover {
+.answerButton:hover:not(:disabled) {
   transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
-.answerButton:active {
+.answerButton:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.answerButton:disabled {
+  pointer-events: none;
 }
 
 .buttonText {
