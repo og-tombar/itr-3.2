@@ -5,7 +5,7 @@ import { useLobby } from "./useLobby";
 import Countdown from "@/components/countdown/Countdown";
 
 export default function LobbyScreen() {
-  const { timeRemaining, handleJoin } = useLobby();
+  const { timeRemaining, handleNewPlayer } = useLobby();
 
   return (
     <div className="container-fullscreen">
@@ -14,7 +14,7 @@ export default function LobbyScreen() {
       <Countdown timeRemaining={timeRemaining} />
 
       <div className="flex-column text-center">
-        <button className="btn btn-primary btn-large" onClick={handleJoin}>
+        <button className="btn btn-primary btn-large" onClick={handleNewPlayer}>
           Join Game
         </button>
       </div>

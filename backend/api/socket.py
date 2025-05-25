@@ -2,7 +2,8 @@
 
 import socketio
 from app.manager import AppManager
-from events.data import JoinGameData, MessageData, SubmitAnswerData
+from events.data import (JoinGameData, MessageData, NewPlayerData,
+                         SubmitAnswerData)
 from events.events import ClientEvent
 
 
@@ -27,25 +28,26 @@ class SocketHandlers:
     def _setup() -> None:
         """Set up all socket.io event handlers."""
         sio = SocketHandlers.SERVER
-        sio.on(ClientEvent.JOIN_LOBBY)(SocketHandlers.handle_join_lobby)
+        sio.on(ClientEvent.NEW_PLAYER)(SocketHandlers.handle_new_player)
         sio.on(ClientEvent.JOIN_GAME)(SocketHandlers.handle_join_game)
         sio.on(ClientEvent.SUBMIT_ANSWER)(SocketHandlers.handle_submit_answer)
         sio.on(ClientEvent.DISCONNECT)(SocketHandlers.handle_disconnect)
         sio.on(ClientEvent.MESSAGE)(SocketHandlers.handle_message)
 
     @staticmethod
-    async def handle_join_lobby(sid: str, _: dict):
-        """Handles a player joining the lobby.
+    async def handle_new_player(sid: str, data: dict) -> None:
+        """Handles a new player entering the lobby.
 
         Args:
             sid (str): The socket ID of the player.
-            _ (dict): The data from the client.
+            data (dict): The data from the client.
         """
         print(f"[backend] {sid} joined lobby")
-        await SocketHandlers.MANAGER.add_to_lobby(sid)
+        event_data = NewPlayerData.from_dict(data)
+        await SocketHandlers.MANAGER.new_player(sid, event_data)
 
     @staticmethod
-    async def handle_join_game(sid: str, data: dict):
+    async def handle_join_game(sid: str, data: dict) -> None:
         """Handles a player joining a game.
 
         Args:
@@ -57,7 +59,7 @@ class SocketHandlers:
         await SocketHandlers.MANAGER.join_game(sid, event_data)
 
     @staticmethod
-    async def handle_submit_answer(sid: str, data: dict):
+    async def handle_submit_answer(sid: str, data: dict) -> None:
         """Handles a player submitting an answer.
 
         Args:
@@ -66,10 +68,10 @@ class SocketHandlers:
         """
         print(f"[backend] {sid} submitted answer {data}")
         event_data = SubmitAnswerData.from_dict(data)
-        await SocketHandlers.MANAGER.submit_answer(sid, event_data)
+        SocketHandlers.MANAGER.submit_answer(sid, event_data)
 
     @staticmethod
-    async def handle_message(_: str, data: dict):
+    async def handle_message(_: str, data: dict) -> None:
         """Handles a player sending a message.
 
         Args:
@@ -81,7 +83,7 @@ class SocketHandlers:
         await SocketHandlers.MANAGER.send_message(event_data)
 
     @staticmethod
-    async def handle_disconnect(sid: str):
+    async def handle_disconnect(sid: str) -> None:
         """Handles a player disconnecting from the server.
 
         Args:

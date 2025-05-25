@@ -3,8 +3,9 @@
 import asyncio
 import uuid
 
-from events.data import NewGameData, SubmitAnswerData
+from events.data import NewGameData
 from game.game import Game
+from player.player import Player
 
 
 class GameManager:
@@ -13,11 +14,11 @@ class GameManager:
     def __init__(self):
         self._games: dict[str, Game] = {}
 
-    def new_game(self, players: list[str]) -> NewGameData:
+    def new_game(self, players: dict[str, Player]) -> NewGameData:
         """Creates a new game.
 
         Args:
-            players (list[str]): The players in the game.
+            players (dict[str, Player]): The players in the game.
 
         Returns:
             NewGameData: The new game data.
@@ -28,11 +29,10 @@ class GameManager:
         asyncio.create_task(game.start())
         return NewGameData(game_id)
 
-    async def submit_answer(self, sid: str, data: SubmitAnswerData) -> None:
-        """Submits an answer to the game.
+    def remove_player(self, player: Player) -> None:
+        """Removes a player from the game.
 
         Args:
-            sid (str): The socket id of the player.
-            data (SubmitAnswerData): The data from the client.
+            player (Player): The player to remove.
         """
-        self._games[data.game_id].submit_answer(sid, data.answer)
+        self._games[player.room].remove_player(player)

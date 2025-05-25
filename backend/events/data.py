@@ -17,7 +17,18 @@ class ClientEventData(EventData):
     @staticmethod
     @abstractmethod
     def from_dict(d: dict) -> "ClientEventData":
-        """Convert the data to a dictionary."""
+        """Create a new client event data object from a dictionary."""
+
+
+@dataclass
+class NewPlayerData(ClientEventData):
+    """The data associated with a new player event."""
+    name: str
+
+    @staticmethod
+    def from_dict(d: dict) -> "NewPlayerData":
+        """Create a new new player data object from a dictionary."""
+        return NewPlayerData(d["name"])
 
 
 @dataclass
@@ -27,7 +38,7 @@ class JoinGameData(ClientEventData):
 
     @staticmethod
     def from_dict(d: dict) -> "JoinGameData":
-        """Convert the data to a dictionary."""
+        """Create a new join game data object from a dictionary."""
         return JoinGameData(d["game_id"])
 
 
@@ -39,7 +50,7 @@ class SubmitAnswerData(ClientEventData):
 
     @staticmethod
     def from_dict(d: dict) -> "SubmitAnswerData":
-        """Convert the data to a dictionary."""
+        """Create a new submit answer data object from a dictionary."""
         return SubmitAnswerData(d["game_id"], d["answer"])
 
 
@@ -80,5 +91,5 @@ class MessageData(EventData):
 
     @staticmethod
     def from_dict(d: dict) -> "MessageData":
-        """Convert the data to a dictionary."""
+        """Create a new message data object from a dictionary."""
         return MessageData(d["id"], d["sender_id"], d["username"], d["message"], d["timestamp"])

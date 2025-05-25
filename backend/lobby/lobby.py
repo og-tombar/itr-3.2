@@ -4,6 +4,7 @@ import asyncio
 
 from events.data import LobbyUpdateData
 from events.events import EventQueue, ServerEvent
+from player.player import Player
 
 
 class Lobby:
@@ -14,37 +15,37 @@ class Lobby:
     MAX_PLAYERS = 4
 
     def __init__(self):
-        self._players = set[str]()
+        self._players: dict[str, Player] = {}
         self._time_remaining = self.TIMEOUT_SECONDS
         self._is_timer_active = False
 
-    async def add_player(self, sid: str) -> None:
+    async def add_player(self, player: Player) -> None:
         """Adds a player to the lobby.
 
         Args:
             sid (str): The sid of the player to add.
         """
-        self._players.add(sid)
+        self._players[player.sid] = player
         if not self._is_timer_active:
             asyncio.create_task(self._start_timer())
 
-    def remove_player(self, sid: str) -> None:
+    def remove_player(self, player: Player) -> None:
         """Removes a player from the lobby.
 
         Args:
             sid (str): The sid of the player to remove.
         """
-        self._players.discard(sid)
-        if not self._players:
+        self._players.pop(player.sid)
+        if not self._players.values():
             self._is_timer_active = False
 
-    def get_players(self) -> list[str]:
+    def get_players(self) -> dict[str, Player]:
         """Gets the players in the lobby.
 
         Returns:
-            list[str]: The players in the lobby.
+            dict[str, Player]: The players in the lobby.
         """
-        return list(self._players)
+        return self._players.copy()
 
     def clear(self) -> None:
         """Clears the lobby."""
@@ -67,7 +68,7 @@ class Lobby:
             or (self._time_remaining <= 0 < len(self._players))
         )
         data = LobbyUpdateData(
-            players=list(self._players),
+            players=list(self._players.keys()),
             time_remaining=self._time_remaining,
             should_start_game=should_start_game,
         )

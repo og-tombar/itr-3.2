@@ -2,16 +2,17 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import socket from "../../shared/socket";
 import { ClientEvent, ServerEvent } from "../../shared/events";
-import { LobbyUpdate, NewGame } from "./types";
+import { LobbyUpdate, NewGame, NewPlayer } from "./types";
 
 export function useLobby() {
   const router = useRouter();
   const [players, setPlayers] = useState<string[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<number | undefined>();
 
-  const handleJoin = useCallback(() => {
-    console.log("[frontend] join_lobby");
-    socket.emit(ClientEvent.JOIN_LOBBY, {});
+  const handleNewPlayer = useCallback(() => {
+    console.log("[frontend] new_player");
+    const data: NewPlayer = { name: "John Doe" };
+    socket.emit(ClientEvent.NEW_PLAYER, data);
   }, []);
 
   const handleLobbyUpdate = useCallback((update: LobbyUpdate) => {
@@ -39,5 +40,5 @@ export function useLobby() {
     };
   }, [handleLobbyUpdate, handleNewGame]);
 
-  return { players, timeRemaining, handleJoin };
+  return { players, timeRemaining, handleNewPlayer };
 }

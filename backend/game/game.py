@@ -5,16 +5,17 @@ from typing import Generator
 
 from events.data import GameUpdateData
 from events.events import EventQueue, ServerEvent
-from game.models import GamePhase, Phase, Player, Question
+from game.models import GamePhase, Phase, Question
+from player.player import Player
 from questions.questions import QuestionDB
 
 
 class Game:
     """A game of trivia."""
 
-    def __init__(self, game_id: str, players: list[str]):
+    def __init__(self, game_id: str, players: dict[str, Player]):
         self._id = game_id
-        self._players = {p: Player(p) for p in players}
+        self._players = players
         self._questions = iter(QuestionDB.get_questions())
         self._next_question: Question | None = None
         self._phase: Phase | None = None
@@ -29,14 +30,13 @@ class Game:
             self._phase = p
             await self._run_phase()
 
-    def submit_answer(self, player: str, answer: int) -> None:
-        """Submits an answer to the game.
+    def remove_player(self, player: Player) -> None:
+        """Removes a player from the game.
 
         Args:
-            player (str): The player submitting the answer.
-            answer (int): The answer to the question.
+            player (Player): The player to remove.
         """
-        self._players[player].answer = answer
+        self._players.pop(player.sid)
 
     #################################################
     # Private methods
@@ -108,7 +108,7 @@ class Game:
         Returns:
             dict[str, int]: The scores for each player.
         """
-        return {p.id: p.score for p in self._players.values()}
+        return {p.sid: p.score for p in self._players.values()}
 
     def _update_scores(self) -> None:
         """Updates the scores for each player."""
@@ -121,7 +121,7 @@ class Game:
         Returns:
             dict[str, int]: The answers for each player.
         """
-        return {p.id: p.answer for p in self._players.values()}
+        return {p.sid: p.answer for p in self._players.values()}
 
     def _all_answered(self) -> bool:
         """Checks if all players have answered the current question.

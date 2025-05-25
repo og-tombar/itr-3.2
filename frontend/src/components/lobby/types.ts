@@ -1,3 +1,7 @@
+export interface NewPlayer {
+  name: string;
+}
+
 export interface LobbyUpdate {
   players: string[];
   time_remaining: number;
