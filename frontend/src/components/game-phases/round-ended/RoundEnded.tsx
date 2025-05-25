@@ -32,48 +32,14 @@ export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
     <div className={`container-fullscreen ${styles.container}`}>
       {/* Main Content */}
       <div className={styles.mainContent}>
-        {/* Title */}
-        <h1 className={styles.title}>Round Complete!</h1>
-
-        {/* Current Player Standing */}
-        {currentPlayerStanding && currentPlayer && (
-          <div className={styles.standingContainer}>
-            <div className={styles.standingDisplay}>
-              <div className={styles.standingIcon}>
-                {currentPlayerStanding === 1
-                  ? "🥇"
-                  : currentPlayerStanding === 2
-                  ? "🥈"
-                  : currentPlayerStanding === 3
-                  ? "🥉"
-                  : "🏅"}
-              </div>
-              <div className={styles.standingText}>
-                <div className={styles.standingPosition}>
-                  {currentPlayerStanding === 1
-                    ? "1st Place!"
-                    : currentPlayerStanding === 2
-                    ? "2nd Place!"
-                    : currentPlayerStanding === 3
-                    ? "3rd Place!"
-                    : `${currentPlayerStanding}th Place`}
-                </div>
-                <div className={styles.standingScore}>
-                  {currentPlayer.score} points
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Answer Feedback */}
         <div className={styles.answerSection}>
           <div
             className={styles.feedbackContainer}
             style={{
               background: isCorrect
-                ? "linear-gradient(135deg, var(--accent-green), #d4edda)"
-                : "linear-gradient(135deg, var(--accent-red), #f8d7da)",
+                ? "var(--accent-green)"
+                : "var(--accent-red)",
             }}
           >
             <div className={styles.feedbackText}>
@@ -100,6 +66,37 @@ export default function RoundEndedScreen({ gameState }: RoundEndedScreenProps) {
           </div>
         </div>
       </div>
+
+      {/* Current Player Standing */}
+      {currentPlayerStanding && currentPlayer && (
+        <div className={styles.standingContainer}>
+          <div className={styles.standingDisplay}>
+            <div className={styles.standingIcon}>
+              {currentPlayerStanding === 1
+                ? "🥇"
+                : currentPlayerStanding === 2
+                ? "🥈"
+                : currentPlayerStanding === 3
+                ? "🥉"
+                : "🏅"}
+            </div>
+            <div className={styles.standingText}>
+              <div className={styles.standingPosition}>
+                {currentPlayerStanding === 1
+                  ? "1st Place!"
+                  : currentPlayerStanding === 2
+                  ? "2nd Place!"
+                  : currentPlayerStanding === 3
+                  ? "3rd Place!"
+                  : `${currentPlayerStanding}th Place`}
+              </div>
+              <div className={styles.standingScore}>
+                {currentPlayer.score} points
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Decorative Elements */}
       <div className="decorative-elements">
