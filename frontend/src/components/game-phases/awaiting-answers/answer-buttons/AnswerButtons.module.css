@@ -13,7 +13,7 @@
 
 .answerButton {
   min-height: 120px;
-  width: 500px;
+  width: 450px;
   font-size: 2rem;
   padding: var(--space-lg);
   border: 3px solid var(--white);
