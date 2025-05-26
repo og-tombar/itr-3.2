@@ -92,6 +92,7 @@ class NewGameData(EventData):
 class GameUpdateData(EventData):
     """The data associated with a game update event."""
     id: str
+    category: str
     phase: str
     players: dict[str, Player] = field(default_factory=dict)
     question_text: str = ""

@@ -18,9 +18,10 @@ class Game:
     def __init__(self, game_id: str, players: dict[str, Player]):
         self._id = game_id
         self._players = players
+        self._category = Category.RANDOM
+        self._phase: Phase | None = None
         self._questions: Generator[Question, None, None] = iter([])
         self._current_question: Question | None = None
-        self._phase: Phase | None = None
 
     #################################################
     # Public methods
@@ -60,6 +61,7 @@ class Game:
         """
         yield self._make_phase(GamePhase.GAME_STARTED)
         yield self._make_phase(GamePhase.CATEGORY_SELECTION)
+        yield self._make_phase(GamePhase.CATEGORY_RESULTS)
         while self._current_question is not None:
             yield self._make_phase(GamePhase.AWAITING_ANSWERS)
             next_question = next(self._questions, None)
@@ -113,6 +115,7 @@ class Game:
 
         update = GameUpdateData(
             id=self._id,
+            category=self._category,
             phase=self._phase.title,
             players=self._players,
             question_text=question_text,
@@ -147,12 +150,12 @@ class Game:
             if p.selected_category is not None:
                 votes[p.selected_category] += 1
         if len(votes) == 0:
-            category = Category.randomize()
+            self._category = Category.randomize()
         else:
             majority = max(votes.values())
             candidates = [c for c in votes if votes[c] == majority]
-            category = random.choice(candidates)
-        self._questions = iter(QuestionDB.get_questions(category))
+            self._category = random.choice(candidates)
+        self._questions = iter(QuestionDB.get_questions(self._category))
         self._current_question = next(self._questions, None)
 
     def _get_scores(self) -> dict[str, int]:
