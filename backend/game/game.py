@@ -87,10 +87,8 @@ class Game:
         yield self._make_phase(GamePhase.CATEGORY_RESULTS)
         while self._current_question is not None:
             yield self._make_phase(GamePhase.AWAITING_ANSWERS)
-            next_question = next(self._questions, None)
-            if next_question is not None:
-                yield self._make_phase(GamePhase.ROUND_ENDED)
-            self._current_question = next_question
+            yield self._make_phase(GamePhase.ROUND_ENDED)
+            self._current_question = next(self._questions, None)
         yield self._make_phase(GamePhase.GAME_ENDED)
 
     def _make_phase(self, title: GamePhase) -> Phase:
