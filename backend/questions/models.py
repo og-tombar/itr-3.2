@@ -6,6 +6,7 @@ from enum import Enum
 
 class Category(str, Enum):
     """The categories of questions."""
+    ALL = "All"
     ART = "Art"
     ENTERTAINMENT_BOARD_GAMES = "Entertainment: Board Games"
     ENTERTAINMENT_BOOKS = "Entertainment: Books"
