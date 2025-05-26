@@ -20,7 +20,6 @@
 }
 
 .categoryButton {
-  /* padding: var(--space-lg) var(--space-xl); */
   border: 3px solid var(--white);
   border-radius: var(--radius-lg);
   color: var(--white);
