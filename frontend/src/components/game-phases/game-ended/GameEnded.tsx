@@ -1,155 +1,67 @@
 import { GameUpdate } from "@/app/game/types";
+import { useRouter } from "next/navigation";
+import styles from "./GameEnded.module.css";
 
 interface GameEndedScreenProps {
   gameState: GameUpdate;
 }
 
 export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
+  const router = useRouter();
   const sortedScores = Object.entries(gameState.players).sort(
     ([, a], [, b]) => b.score - a.score
   );
-  const winner = sortedScores[0];
+
+  const handleBackToLobby = () => {
+    router.push("/lobby");
+  };
 
   return (
-    <div className="container-fullscreen">
-      <div
-        className="card card-large text-center"
-        style={{ position: "relative", zIndex: 10, maxWidth: "900px" }}
-      >
-        <h1
-          className="title-main animate-bounce"
-          style={{
-            color: "var(--accent-green)",
-            textShadow:
-              "3px 3px 0 var(--accent-yellow), 6px 6px 0 var(--accent-red)",
-            fontSize: "3.5rem",
-          }}
-        >
-          🎉 Game Over! 🎉
-        </h1>
+    <div className={`container-fullscreen ${styles.container}`}>
+      <div className={styles.mainContent}>
+        {/* Game Over Title */}
+        <h1 className={styles.title}>Game Over</h1>
 
-        <div
-          className="badge badge-success"
-          style={{
-            fontSize: "1.2rem",
-            padding: "var(--space-sm) var(--space-lg)",
-            marginBottom: "var(--space-xl)",
-          }}
-        >
-          {gameState.phase}
-        </div>
-
-        {winner && (
-          <div
-            className="info-panel-highlight animate-pulse"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--accent-yellow), #fff3cd)",
-              border: "3px solid var(--accent-yellow)",
-              marginBottom: "var(--space-xl)",
-            }}
-          >
-            <h2
-              className="title-medium"
-              style={{
-                color: "var(--dark-gray)",
-                marginBottom: "var(--space-sm)",
-              }}
-            >
-              🏆 Winner: {winner[0]} 🏆
-            </h2>
-            <div
-              className="text-body"
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                color: "var(--dark-gray)",
-              }}
-            >
-              Final Score: {winner[1].score} points
+        {/* Leaderboard Table */}
+        <div className={styles.leaderboardSection}>
+          <div className={styles.leaderboardTable}>
+            <div className={styles.tableHeader}>
+              <div className={styles.headerRank}>Place</div>
+              <div className={styles.headerName}>Player</div>
+              <div className={styles.headerScore}>Score</div>
             </div>
-          </div>
-        )}
-
-        <div style={{ marginBottom: "var(--space-lg)" }}>
-          <h3 className="title-medium">🏅 Final Leaderboard</h3>
-          <div className="info-panel">
             {sortedScores.length > 0 ? (
-              sortedScores.map(([player, playerData], index) => (
+              sortedScores.slice(0, 3).map(([player, playerData], index) => (
                 <div
                   key={player}
-                  className="flex-between"
-                  style={{
-                    padding: "var(--space-md) 0",
-                    borderBottom:
-                      index < sortedScores.length - 1
-                        ? "2px solid var(--light-gray)"
-                        : "none",
-                    fontSize: "1.2rem",
-                  }}
+                  className={`${styles.tableRow} ${styles[`rank${index + 1}`]}`}
                 >
-                  <span
-                    style={{
-                      fontWeight: "bold",
-                      color:
-                        index === 0
-                          ? "var(--accent-yellow)"
-                          : index === 1
-                          ? "var(--medium-gray)"
-                          : index === 2
-                          ? "#cd7f32"
-                          : "var(--dark-gray)",
-                    }}
-                  >
-                    {index === 0
-                      ? "🥇 "
-                      : index === 1
-                      ? "🥈 "
-                      : index === 2
-                      ? "🥉 "
-                      : `${index + 1}. `}
-                    {player}
-                  </span>
-                  <span
-                    className="badge badge-primary"
-                    style={{
-                      fontSize: "1.3rem",
-                      padding: "var(--space-sm) var(--space-md)",
-                    }}
-                  >
-                    {playerData.score} pts
-                  </span>
+                  <div className={styles.rankCell}>
+                    <span className={styles.rankIcon}>
+                      {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
+                    </span>
+                  </div>
+                  <div className={styles.nameCell}>{playerData.name}</div>
+                  <div className={styles.scoreCell}>
+                    <span className={styles.scoreValue}>
+                      {playerData.score}
+                    </span>
+                  </div>
                 </div>
               ))
             ) : (
-              <em className="text-small">No scores available</em>
+              <div className={styles.noScores}>No scores available</div>
             )}
           </div>
         </div>
 
-        <div
-          className="info-panel"
-          style={{
-            background: "linear-gradient(135deg, var(--accent-teal), #d1ecf1)",
-            border: "2px solid var(--accent-teal)",
-          }}
-        >
-          <p
-            className="text-body"
-            style={{
-              margin: 0,
-              color: "var(--dark-gray)",
-              fontWeight: "600",
-            }}
-          >
-            🎮 Thanks for playing! Game ID:{" "}
-            <strong style={{ color: "var(--primary-purple)" }}>
-              {gameState.id}
-            </strong>
-          </p>
-        </div>
+        {/* Back to Lobby Button */}
+        <button className={styles.backButton} onClick={handleBackToLobby}>
+          Back to Lobby
+        </button>
       </div>
 
+      {/* Decorative Elements */}
       <div className="decorative-elements">
         <div className="bubble bubble-1"></div>
         <div className="bubble bubble-2"></div>

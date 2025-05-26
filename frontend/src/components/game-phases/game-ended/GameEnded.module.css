@@ -1,0 +1,300 @@
+.container {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  background: linear-gradient(
+    135deg,
+    var(--primary-purple),
+    var(--primary-pink)
+  );
+  overflow: hidden;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl);
+  position: relative;
+  z-index: 10;
+  gap: var(--space-xl);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Title Styling - Same as main title */
+.title {
+  font-family: var(--font-heading);
+  font-size: 4rem;
+  color: var(--white);
+  text-shadow: 3px 3px 0 var(--accent-red), 6px 6px 0 var(--accent-teal);
+  text-align: center;
+  margin-bottom: var(--space-lg);
+  animation: bounce 2s infinite;
+}
+
+/* Winner Section */
+.winnerSection {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: var(--space-lg);
+}
+
+.winnerContainer {
+  background: linear-gradient(135deg, var(--accent-yellow), #fff3cd);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 3px solid var(--accent-yellow);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  animation: pulse 2s infinite;
+}
+
+.winnerIcon {
+  font-size: 4rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  animation: bounce 2s infinite;
+}
+
+.winnerText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.winnerLabel {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--dark-gray);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.winnerName {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--dark-gray);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.winnerScore {
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--medium-gray);
+}
+
+/* Leaderboard Section */
+.leaderboardSection {
+  width: 100%;
+}
+
+.leaderboardTitle {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  color: var(--white);
+  text-shadow: 2px 2px 0 var(--accent-red);
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.leaderboardTable {
+  width: 600px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 3px solid var(--white);
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 100px 1fr 120px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-purple),
+    var(--primary-pink)
+  );
+  color: var(--white);
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding: var(--space-md);
+  text-align: center;
+}
+
+.headerRank,
+.headerName,
+.headerScore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 100px 1fr 120px;
+  padding: var(--space-md);
+  border-bottom: 2px solid var(--light-gray);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Rank-specific colors */
+.rank1 {
+  background: linear-gradient(135deg, #ffd700, #fff3cd);
+  color: var(--dark-gray);
+}
+
+.rank2 {
+  background: linear-gradient(135deg, #c0c0c0, #f8f9fa);
+  color: var(--dark-gray);
+}
+
+.rank3 {
+  background: linear-gradient(135deg, #cd7f32, #fff3cd);
+  color: var(--dark-gray);
+}
+
+.rank4 {
+  background: linear-gradient(135deg, var(--accent-teal), #e0f7fa);
+  color: var(--dark-gray);
+}
+
+.rankCell,
+.nameCell,
+.scoreCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rankIcon {
+  font-size: 2rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.nameCell {
+  font-size: 1.4rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.scoreCell {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scoreValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.scoreLabel {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.noScores {
+  padding: var(--space-xl);
+  text-align: center;
+  font-style: italic;
+  color: var(--medium-gray);
+  font-size: 1.2rem;
+}
+
+/* Back to Lobby Button */
+.backButton {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1.5rem;
+  padding: var(--space-md) var(--space-xl);
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-teal));
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  margin-top: var(--space-lg);
+}
+
+.backButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-green));
+}
+
+.backButton:active {
+  transform: translateY(0);
+}
+
+/* Animations */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .title {
+    font-size: 3rem;
+  }
+
+  .leaderboardTitle {
+    font-size: 2rem;
+  }
+
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 80px 1fr 100px;
+    font-size: 1rem;
+    padding: var(--space-sm);
+  }
+
+  .winnerContainer {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-sm);
+  }
+
+  .winnerName {
+    font-size: 2rem;
+  }
+
+  .backButton {
+    font-size: 1.2rem;
+    padding: var(--space-sm) var(--space-lg);
+  }
+}
