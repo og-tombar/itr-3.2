@@ -21,6 +21,9 @@ class QuestionDB:
         Returns:
             list[Question]: The questions from the database.
         """
+        if category == Category.RANDOM:
+            category = Category.randomize()
+
         with sqlite3.connect(QuestionDB.DB_PATH) as conn:
             cur = conn.cursor()
             if category != Category.ALL:
