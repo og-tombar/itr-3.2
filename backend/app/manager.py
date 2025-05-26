@@ -107,7 +107,7 @@ class AppManager:
         """
         print("[app_manager] submit_answer", sid, data)
         player = self._player_manager.get_player(sid)
-        player.answer = data.answer
+        self._game_manager.submit_answer(player, data.answer)
 
     async def send_message(self, data: MessageData) -> None:
         """Sends a message to the players.

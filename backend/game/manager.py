@@ -29,6 +29,17 @@ class GameManager:
         asyncio.create_task(game.start())
         return NewGameData(game_id)
 
+    def submit_answer(self, player: Player, answer: int) -> None:
+        """Submits an answer for a player.
+
+        Args:
+            player (Player): The player who submitted the answer.
+            answer (int): The answer submitted by the player.
+        """
+        game = self._games.get(player.room)
+        if game:
+            game.submit_answer(player, answer)
+
     def remove_player(self, player: Player) -> None:
         """Removes a player from the game.
 

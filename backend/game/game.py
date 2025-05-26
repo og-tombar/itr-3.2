@@ -33,6 +33,17 @@ class Game:
             self._phase = p
             await self._run_phase()
 
+    def submit_answer(self, player: Player, answer: int) -> None:
+        """Submits an answer for a player.
+
+        Args:
+            player (Player): The player who submitted the answer.
+            answer (int): The answer submitted by the player.
+        """
+        player.answer = answer
+        if answer == self._current_question.correct_index:
+            player.score += self._phase.time_remaining
+
     def remove_player(self, player: Player) -> None:
         """Removes a player from the game.
 
@@ -88,7 +99,6 @@ class Game:
                 p.teardown = self._load_questions
             case GamePhase.AWAITING_ANSWERS:
                 p.setup = self._reset_answers
-                p.teardown = self._update_scores
                 p.should_stop = self._all_answered
         return p
 
@@ -165,11 +175,6 @@ class Game:
             dict[str, int]: The scores for each player.
         """
         return {p.sid: p.score for p in self._players.values()}
-
-    def _update_scores(self) -> None:
-        """Updates the scores for each player."""
-        for p in self._players.values():
-            p.score += p.answer == self._current_question.correct_index
 
     def _get_answers(self) -> dict[str, int]:
         """Gets the answers for each player.
