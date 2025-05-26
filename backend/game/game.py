@@ -76,10 +76,13 @@ class Game:
             Phase: The Phase object for the phase.
         """
         p = Phase(title=title, time_remaining=title.get_duration())
-        if title == GamePhase.AWAITING_ANSWERS:
-            p.setup = self._reset_answers
-            p.teardown = self._update_scores
-            p.should_stop = self._all_answered
+        match title:
+            case GamePhase.GAME_STARTED:
+                p.setup = self._reset_scores
+            case GamePhase.AWAITING_ANSWERS:
+                p.setup = self._reset_answers
+                p.teardown = self._update_scores
+                p.should_stop = self._all_answered
         return p
 
     async def _run_phase(self) -> None:
@@ -118,6 +121,10 @@ class Game:
         """Ticks the game timer."""
         await asyncio.sleep(1)
         self._phase.time_remaining -= 1
+
+    def _reset_scores(self) -> None:
+        for p in self._players.values():
+            p.score = 0
 
     def _get_scores(self) -> dict[str, int]:
         """Gets the scores for each player.
