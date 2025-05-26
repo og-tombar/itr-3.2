@@ -3,7 +3,7 @@
 import socketio
 from app.manager import AppManager
 from events.data import (JoinGameData, MessageData, NewPlayerData,
-                         SelectCategoryData, SubmitAnswerData)
+                         SelectCategoryData, SetBotLevelData, SubmitAnswerData)
 from events.events import ClientEvent
 
 
@@ -35,6 +35,8 @@ class SocketHandlers:
             SocketHandlers.handle_join_lobby)
         SocketHandlers.SERVER.on(ClientEvent.JOIN_GAME)(
             SocketHandlers.handle_join_game)
+        SocketHandlers.SERVER.on(ClientEvent.SET_BOT_LEVEL)(
+            SocketHandlers.handle_set_bot_level)
         SocketHandlers.SERVER.on(ClientEvent.SELECT_CATEGORY)(
             SocketHandlers.handle_select_category)
         SocketHandlers.SERVER.on(ClientEvent.SUBMIT_ANSWER)(
@@ -91,6 +93,18 @@ class SocketHandlers:
         await SocketHandlers.MANAGER.join_game(sid, event_data)
 
     @staticmethod
+    async def handle_set_bot_level(sid: str, data: dict) -> None:
+        """Handles a player setting the bot level.
+
+        Args:
+            sid (str): The socket ID of the player.
+            data (dict): The data from the client.
+        """
+        event_data = SetBotLevelData.from_dict(data)
+        print(f"[backend] {sid} set bot level {event_data.level}")
+        await SocketHandlers.MANAGER.set_bot_level(sid, event_data)
+
+    @staticmethod
     async def handle_select_category(sid: str, data: dict) -> None:
         """Handles a player selecting a category.
 
@@ -132,6 +146,7 @@ class SocketHandlers:
 
         Args:
             sid (str): The socket ID of the player.
+            _ (dict): The data from the client.
         """
         print(f"[backend] {sid} disconnected")
         await SocketHandlers.MANAGER.disconnect(sid)

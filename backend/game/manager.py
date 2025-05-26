@@ -5,7 +5,7 @@ import uuid
 
 from events.data import NewGameData
 from game.game import Game
-from player.player import Player
+from player.player import BotLevel, Player
 
 
 class GameManager:
@@ -28,6 +28,17 @@ class GameManager:
         self._games[game_id] = game
         asyncio.create_task(game.start())
         return NewGameData(game_id)
+
+    def set_bot_level(self, game_id: str, level: BotLevel) -> None:
+        """Sets the bot level for a game.
+
+        Args:
+            game_id (str): The id of the game.
+            level (BotLevel): The level of the bot.
+        """
+        game = self._games.get(game_id)
+        if game:
+            game.set_bot_level(level)
 
     def submit_answer(self, player: Player, answer: int) -> None:
         """Submits an answer for a player.

@@ -5,7 +5,7 @@ import uuid
 import socketio
 from events.data import (GameUpdateData, JoinGameData, LobbyUpdateData,
                          MessageData, NewPlayerData, SelectCategoryData,
-                         SubmitAnswerData)
+                         SetBotLevelData, SubmitAnswerData)
 from events.events import EventQueue, ServerEvent
 from game.manager import GameManager
 from lobby.lobby import Lobby
@@ -86,6 +86,17 @@ class AppManager:
         print("[app_manager] join_game", sid, data)
         player = self._player_manager.get_player(sid)
         await self._set_room(player, data.game_id)
+
+    def set_bot_level(self, sid: str, data: SetBotLevelData) -> None:
+        """Sets the bot level for a game.
+
+        Args:
+            sid (str): The socket id of the player.
+            data (SetBotLevelData): The data from the client.
+        """
+        print("[app_manager] set_bot_level", sid, data)
+        player = self._player_manager.get_player(sid)
+        self._game_manager.set_bot_level(player.room, data.level)
 
     def select_category(self, sid: str, data: SelectCategoryData) -> None:
         """Selects a category for the game.

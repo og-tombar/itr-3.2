@@ -8,7 +8,7 @@ from typing import Generator
 from events.data import GameUpdateData
 from events.events import EventQueue, ServerEvent
 from game.models import GamePhase, Phase
-from player.player import Player, PlayerType, bot_names
+from player.player import BotLevel, Player, PlayerType, bot_names
 from questions.models import Category, Question
 from questions.questions import QuestionDB
 
@@ -19,6 +19,7 @@ class Game:
     def __init__(self, game_id: str, players: dict[str, Player]):
         self._id = game_id
         self._players = players
+        self._bot_level: BotLevel | None = None
         self._category = Category.RANDOM
         self._phase: Phase | None = None
         self._questions: Generator[Question, None, None] = iter([])
@@ -30,12 +31,17 @@ class Game:
 
     async def start(self) -> None:
         """Starts the game."""
-        if len(self._players) == 1:
-            self._add_bots()
-
         for p in self._phases():
             self._phase = p
             await self._run_phase()
+
+    def set_bot_level(self, level: BotLevel) -> None:
+        """Sets the bot level for the game.
+
+        Args:
+            level (BotLevel): The level of the bot.
+        """
+        self._bot_level = level
 
     def submit_answer(self, player: Player, answer: int) -> None:
         """Submits an answer for a player.
@@ -73,7 +79,12 @@ class Game:
         random.shuffle(bot_names)
         names = bot_names[:3]
         for name in names:
-            bot = Player(type=PlayerType.BOT, sid=str(uuid.uuid4()), name=name)
+            bot = Player(
+                sid=str(uuid.uuid4()),
+                type=PlayerType.BOT,
+                name=name)
+            if self._bot_level is not None:
+                bot.level = self._bot_level
             self._players[bot.sid] = bot
 
     def _phases(self) -> Generator[Phase, None, None]:
@@ -83,6 +94,8 @@ class Game:
             Generator[Phase, None, None]: The phases of the game.
         """
         yield self._make_phase(GamePhase.GAME_STARTED)
+        if len(self._players) == 1:
+            yield self._make_phase(GamePhase.BOT_LEVEL_SELECTION)
         yield self._make_phase(GamePhase.CATEGORY_SELECTION)
         yield self._make_phase(GamePhase.CATEGORY_RESULTS)
         while self._current_question is not None:
@@ -104,6 +117,9 @@ class Game:
         match title:
             case GamePhase.GAME_STARTED:
                 p.setup = self._players_reset
+            case GamePhase.BOT_LEVEL_SELECTION:
+                p.should_stop = self._is_bot_level_set
+                p.teardown = self._add_bots
             case GamePhase.CATEGORY_SELECTION:
                 p.should_stop = self._all_selected_category
                 p.teardown = self._load_questions
@@ -166,6 +182,14 @@ class Game:
         for p in self._players.values():
             p.score = 0
             p.selected_category = None
+
+    def _is_bot_level_set(self) -> bool:
+        """Checks if the bot level has been set.
+
+        Returns:
+            bool: True if the bot level has been set, False otherwise.
+        """
+        return self._bot_level is not None
 
     def _all_selected_category(self) -> bool:
         """Checks if all players have selected a category.

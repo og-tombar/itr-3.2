@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from player.player import Player
+from player.player import BotLevel, Player
 from questions.models import Category
 
 
@@ -20,7 +20,14 @@ class ClientEventData(EventData):
     @staticmethod
     @abstractmethod
     def from_dict(d: dict) -> "ClientEventData":
-        """Create a new client event data object from a dictionary."""
+        """Create a new client event data object from a dictionary.
+
+        Args:
+            d (dict): The dictionary to create the object from.
+
+        Returns:
+            ClientEventData: The client event data object.
+        """
 
 
 @dataclass
@@ -30,7 +37,14 @@ class NewPlayerData(ClientEventData):
 
     @staticmethod
     def from_dict(d: dict) -> "NewPlayerData":
-        """Create a new new player data object from a dictionary."""
+        """Create a new new player data object from a dictionary.
+
+        Args:
+            d (dict): The dictionary to create the object from.
+
+        Returns:
+            NewPlayerData: The new player data object.
+        """
         return NewPlayerData(d["name"])
 
 
@@ -41,8 +55,33 @@ class JoinGameData(ClientEventData):
 
     @staticmethod
     def from_dict(d: dict) -> "JoinGameData":
-        """Create a new join game data object from a dictionary."""
+        """Create a new join game data object from a dictionary.
+
+        Args:
+            d (dict): The dictionary to create the object from.
+
+        Returns:
+            JoinGameData: The join game data object.
+        """
         return JoinGameData(d["game_id"])
+
+
+@dataclass
+class SetBotLevelData(ClientEventData):
+    """The data associated with a set bot level event."""
+    level: BotLevel
+
+    @staticmethod
+    def from_dict(d: dict) -> "SetBotLevelData":
+        """Create a new set bot level data object from a dictionary.
+
+        Args:
+            d (dict): The dictionary to create the object from.
+
+        Returns:
+            SetBotLevelData: The set bot level data object.
+        """
+        return SetBotLevelData(BotLevel(d["level"]))
 
 
 @dataclass
@@ -52,7 +91,14 @@ class SelectCategoryData(ClientEventData):
 
     @staticmethod
     def from_dict(d: dict) -> "SelectCategoryData":
-        """Create a new select category data object from a dictionary."""
+        """Create a new select category data object from a dictionary.
+
+        Args:
+            d (dict): The dictionary to create the object from.
+
+        Returns:
+            SelectCategoryData: The select category data object.
+        """
         return SelectCategoryData(Category(d["category"]))
 
 
@@ -63,7 +109,14 @@ class SubmitAnswerData(ClientEventData):
 
     @staticmethod
     def from_dict(d: dict) -> "SubmitAnswerData":
-        """Create a new submit answer data object from a dictionary."""
+        """Create a new submit answer data object from a dictionary.
+
+        Args:
+            d (dict): The dictionary to create the object from.
+
+        Returns:
+            SubmitAnswerData: The submit answer data object.
+        """
         return SubmitAnswerData(d["answer"])
 
 
@@ -122,5 +175,12 @@ class MessageData(EventData):
 
     @staticmethod
     def from_dict(d: dict) -> "MessageData":
-        """Create a new message data object from a dictionary."""
+        """Create a new message data object from a dictionary.
+
+        Args:
+            d (dict): The dictionary to create the object from.
+
+        Returns:
+            MessageData: The message data object.
+        """
         return MessageData(d["id"], d["sender_id"], d["username"], d["message"], d["timestamp"])

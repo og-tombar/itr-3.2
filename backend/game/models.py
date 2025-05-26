@@ -8,6 +8,7 @@ from typing import Callable
 class GamePhase(str, Enum):
     """The phase of a game."""
     GAME_STARTED = "game_started"
+    BOT_LEVEL_SELECTION = "bot_level_selection"
     CATEGORY_SELECTION = "category_selection"
     CATEGORY_RESULTS = "category_results"
     AWAITING_ANSWERS = "awaiting_answers"
@@ -22,6 +23,7 @@ class GamePhase(str, Enum):
         """
         match self:
             case GamePhase.GAME_STARTED: return 3
+            case GamePhase.BOT_LEVEL_SELECTION: return 600
             case GamePhase.CATEGORY_SELECTION: return 45
             case GamePhase.CATEGORY_RESULTS: return 3
             case GamePhase.AWAITING_ANSWERS: return 20
