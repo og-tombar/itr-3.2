@@ -3,22 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import socket from "../../../shared/socket";
 import { ServerEvent } from "../../../shared/events";
-import { GamePhase, GameUpdate } from "../types";
-import { useRouter } from "next/navigation";
+import { GameUpdate } from "../types";
 
 export function useGame() {
   const [gameState, setGameState] = useState<GameUpdate | null>(null);
-  const router = useRouter();
-  const handleGameUpdate = useCallback(
-    (update: GameUpdate) => {
-      console.log("[frontend] game_update", update);
-      if (update.phase === GamePhase.GAME_EXIT) {
-        router.push("/");
-      }
-      setGameState(update);
-    },
-    [router]
-  );
+
+  const handleGameUpdate = useCallback((update: GameUpdate) => {
+    console.log("[frontend] game_update", update);
+    setGameState(update);
+  }, []);
 
   useEffect(() => {
     socket.on(ServerEvent.GAME_UPDATE, handleGameUpdate);

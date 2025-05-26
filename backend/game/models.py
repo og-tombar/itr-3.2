@@ -11,7 +11,6 @@ class GamePhase(str, Enum):
     AWAITING_ANSWERS = "awaiting_answers"
     ROUND_ENDED = "round_ended"
     GAME_ENDED = "game_ended"
-    GAME_EXIT = "game_exit"
 
     def get_duration(self) -> int:
         """Gets the duration of a phase.
@@ -21,9 +20,9 @@ class GamePhase(str, Enum):
         """
         match self:
             case GamePhase.GAME_STARTED: return 3
-            case GamePhase.AWAITING_ANSWERS: return 3
+            case GamePhase.AWAITING_ANSWERS: return 20
             case GamePhase.ROUND_ENDED: return 3
-            case GamePhase.GAME_ENDED: return 60
+            case GamePhase.GAME_ENDED: return 5
             case _: return 0
 
 

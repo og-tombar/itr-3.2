@@ -3,7 +3,6 @@ export enum GamePhase {
   AWAITING_ANSWERS = "awaiting_answers",
   ROUND_ENDED = "round_ended",
   GAME_ENDED = "game_ended",
-  GAME_EXIT = "game_exit",
 }
 
 export interface Player {

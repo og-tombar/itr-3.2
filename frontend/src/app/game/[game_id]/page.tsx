@@ -9,11 +9,9 @@ import { useGame } from "../hooks/useGame";
 
 export default function GameScreen() {
   const { gameState } = useGame();
-  if (!gameState) {
-    return <GameStartedScreen />;
-  }
 
-  switch (gameState.phase) {
+  switch (gameState?.phase) {
+    case undefined:
     case GamePhase.GAME_STARTED:
       return <GameStartedScreen />;
 
@@ -24,7 +22,6 @@ export default function GameScreen() {
       return <RoundEndedScreen gameState={gameState} />;
 
     case GamePhase.GAME_ENDED:
-    case GamePhase.GAME_EXIT:
       return <GameEndedScreen gameState={gameState} />;
   }
 }
