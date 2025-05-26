@@ -1,5 +1,6 @@
 export enum GamePhase {
   GAME_STARTED = "game_started",
+  BOT_LEVEL_SELECTION = "bot_level_selection",
   CATEGORY_SELECTION = "category_selection",
   CATEGORY_RESULTS = "category_results",
   AWAITING_ANSWERS = "awaiting_answers",

@@ -2,6 +2,7 @@
 
 import { GamePhase } from "../types";
 import GameStartedScreen from "@/components/game-phases/game-started/GameStarted";
+import BotLevelSelectionScreen from "@/components/game-phases/bot-level-selection/BotLevelSelection";
 import CategorySelectionScreen from "@/components/game-phases/category-selection/CategorySelection";
 import CategoryResultsScreen from "@/components/game-phases/category-results/CategoryResults";
 import AwaitingAnswersScreen from "@/components/game-phases/awaiting-answers/AwaitingAnswers";
@@ -16,6 +17,9 @@ export default function GameScreen() {
     case undefined:
     case GamePhase.GAME_STARTED:
       return <GameStartedScreen />;
+
+    case GamePhase.BOT_LEVEL_SELECTION:
+      return <BotLevelSelectionScreen gameState={gameState} />;
 
     case GamePhase.CATEGORY_SELECTION:
       return <CategorySelectionScreen gameState={gameState} />;
