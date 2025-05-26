@@ -34,12 +34,3 @@ class Phase:
     setup: Callable[[], None] = lambda: None
     teardown: Callable[[], None] = lambda: None
     should_stop: Callable[[], bool] = lambda: False
-
-
-@dataclass
-class Question:
-    """The data for a question. Includes the correct answer (do not send to clients)."""
-    id: str
-    text: str
-    options: list[str]
-    correct_index: int

@@ -1,38 +1,27 @@
 """Question management service."""
 
-import json
-from dataclasses import dataclass
+import sqlite3
 from pathlib import Path
 
-
-@dataclass
-class Question:
-    """The data for a question. Includes the correct answer (do not send to clients)."""
-    id: str
-    text: str
-    options: list[str]
-    correct_index: int
+from questions.models import Question
 
 
 class QuestionDB:
     """Database for managing questions."""
 
-    DB_PATH = Path(__file__).parent / "questions.json"
-    _questions: list[Question] = []
-
-    @staticmethod
-    def load_questions() -> None:
-        """Load the questions from the database."""
-        with open(QuestionDB.DB_PATH, "r", encoding="utf-8") as f:
-            db = json.load(f)
-        QuestionDB._questions = [Question(**q) for q in db]
+    DB_PATH = Path(__file__).parent / "questions.db"
 
     @staticmethod
     def get_questions() -> list[Question]:
-        """Gets the questions from the database.
+        """Gets 10 questions from the sqlite database.
 
         Returns:
             list[Question]: The questions from the database.
         """
-        QuestionDB.load_questions()
-        return QuestionDB._questions
+        with sqlite3.connect(QuestionDB.DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM questions ORDER BY RANDOM() LIMIT 10")
+            rows = cur.fetchall()
+            questions = [Question.from_row(r) for r in rows]
+            cur.close()
+        return questions
