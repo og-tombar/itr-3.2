@@ -105,7 +105,7 @@ class MessageData(EventData):
     sender_id: str
     username: str
     message: str
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: str = datetime.now().isoformat()
 
     @staticmethod
     def from_dict(d: dict) -> "MessageData":

@@ -1,5 +1,7 @@
 """Main application manager for coordinating services."""
 
+import uuid
+
 import socketio
 from events.data import (GameUpdateData, JoinGameData, LobbyUpdateData,
                          MessageData, NewPlayerData, SubmitAnswerData)
@@ -53,8 +55,15 @@ class AppManager:
             data (NewPlayerData): The data from the client.
         """
         print("[app_manager] new_player", sid, data)
-        self._player_manager.add_player(sid, data.name)
-        await self._player_registered(sid)
+        player = self._player_manager.add_player(sid, data.name)
+        await self.sio.emit(ServerEvent.PLAYER_REGISTERED, sid, to=sid)
+        message = MessageData(
+            id=str(uuid.uuid4()),
+            sender_id="0",
+            username="Server",
+            message=f"Hi {player.name}, and welcome to Takooh! 🐟",
+        )
+        await self.sio.emit(ServerEvent.MESSAGE, message.__dict__)
 
     async def join_lobby(self, sid: str) -> None:
         """Joins the player to the lobby.
@@ -113,14 +122,6 @@ class AppManager:
     ############################################################
     # Server event handlers
     ############################################################
-
-    async def _player_registered(self, sid: str) -> None:
-        """Emits a player registered event to the players.
-
-        Args:
-            sid (str): The socket id of the player.
-        """
-        await self.sio.emit(ServerEvent.PLAYER_REGISTERED, sid, to=sid)
 
     async def _lobby_update(self, data: LobbyUpdateData) -> None:
         """Emits a lobby update to the players.

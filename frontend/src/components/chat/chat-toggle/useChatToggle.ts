@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export function useChatToggle() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const onToggleChat = () => {
     setIsOpen(!isOpen);
