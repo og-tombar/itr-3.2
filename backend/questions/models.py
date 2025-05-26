@@ -12,10 +12,7 @@ class Category(str, Enum):
     ART = "Art"
     BOARD_GAMES = "Board Games"
     BOOKS = "Books"
-    CARTOON_ANIMATIONS = "Cartoon & Animations"
-    COMICS = "Comics"
     FILM = "Film"
-    JAPANESE_ANIME_MANGA = "Japanese Anime & Manga"
     MUSIC = "Music"
     MUSICALS_THEATRES = "Musicals & Theatres"
     TELEVISION = "Television"
@@ -27,7 +24,6 @@ class Category(str, Enum):
     POLITICS = "Politics"
     SCIENCE_NATURE = "Science & Nature"
     COMPUTERS = "Computers"
-    GADGETS = "Gadgets"
     MATHEMATICS = "Mathematics"
     SPORTS = "Sports"
 

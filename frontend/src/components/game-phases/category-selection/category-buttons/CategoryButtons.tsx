@@ -11,28 +11,10 @@ export default function CategoryButtons({}: CategoryButtonsProps) {
     firstRow: ["All", "Random", "General Knowledge"],
 
     // Remaining 20 categories distributed across 4 rows of 5 each
-    secondRow: [
-      "Art",
-      "Board Games",
-      "Books",
-      "Cartoon & Animations",
-      "Comics",
-    ],
-    thirdRow: [
-      "Film",
-      "Japanese Anime & Manga",
-      "Music",
-      "Musicals & Theatres",
-      "Television",
-    ],
+    secondRow: ["Art", "Board Games", "Books"],
+    thirdRow: ["Film", "Music", "Musicals & Theatres", "Television"],
     fourthRow: ["Video Games", "Geography", "History", "Mythology", "Politics"],
-    fifthRow: [
-      "Science & Nature",
-      "Computers",
-      "Gadgets",
-      "Mathematics",
-      "Sports",
-    ],
+    fifthRow: ["Science & Nature", "Computers", "Mathematics", "Sports"],
   };
 
   const renderCategoryButton = (category: string, index: number) => {
