@@ -2,6 +2,7 @@
 
 import { GamePhase } from "../types";
 import GameStartedScreen from "@/components/game-phases/game-started/GameStarted";
+import CategorySelectionScreen from "@/components/game-phases/category-selection/CategorySelection";
 import AwaitingAnswersScreen from "@/components/game-phases/awaiting-answers/AwaitingAnswers";
 import GameEndedScreen from "@/components/game-phases/game-ended/GameEnded";
 import RoundEndedScreen from "@/components/game-phases/round-ended/RoundEnded";
@@ -14,6 +15,9 @@ export default function GameScreen() {
     case undefined:
     case GamePhase.GAME_STARTED:
       return <GameStartedScreen />;
+
+    case GamePhase.CATEGORY_SELECTION:
+      return <CategorySelectionScreen gameState={gameState} />;
 
     case GamePhase.AWAITING_ANSWERS:
       return <AwaitingAnswersScreen gameState={gameState} />;

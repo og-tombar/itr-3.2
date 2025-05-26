@@ -3,6 +3,7 @@ export enum ClientEvent {
   NEW_PLAYER = "new_player",
   JOIN_LOBBY = "join_lobby",
   JOIN_GAME = "join_game",
+  SELECT_CATEGORY = "select_category",
   SUBMIT_ANSWER = "submit_answer",
   MESSAGE = "client_message",
   DISCONNECT = "disconnect",
