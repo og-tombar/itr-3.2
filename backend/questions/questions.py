@@ -12,7 +12,7 @@ class QuestionDB:
     DB_PATH = Path(__file__).parent / "questions.db"
 
     @staticmethod
-    def get_questions(category: Category = Category.ALL) -> list[Question]:
+    def get_questions(category: Category = Category.RANDOM) -> list[Question]:
         """Gets 10 questions from the sqlite database.
 
         Args:

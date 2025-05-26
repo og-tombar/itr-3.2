@@ -1,12 +1,14 @@
 """Game management service."""
 
 import asyncio
+import random
 from typing import Generator
 
 from events.data import GameUpdateData
 from events.events import EventQueue, ServerEvent
 from game.models import GamePhase, Phase
 from player.player import Player
+from questions.models import Category, Question
 from questions.questions import QuestionDB
 
 
@@ -16,8 +18,8 @@ class Game:
     def __init__(self, game_id: str, players: dict[str, Player]):
         self._id = game_id
         self._players = players
-        self._questions = iter(QuestionDB.get_questions())
-        self._current_question = next(self._questions, None)
+        self._questions: Generator[Question, None, None] = iter([])
+        self._current_question: Question | None = None
         self._phase: Phase | None = None
 
     #################################################
@@ -57,6 +59,7 @@ class Game:
             Generator[Phase, None, None]: The phases of the game.
         """
         yield self._make_phase(GamePhase.GAME_STARTED)
+        yield self._make_phase(GamePhase.CATEGORY_SELECTION)
         while self._current_question is not None:
             yield self._make_phase(GamePhase.AWAITING_ANSWERS)
             next_question = next(self._questions, None)
@@ -77,7 +80,10 @@ class Game:
         p = Phase(title=title, time_remaining=title.get_duration())
         match title:
             case GamePhase.GAME_STARTED:
-                p.setup = self._reset_scores
+                p.setup = self._players_reset
+            case GamePhase.CATEGORY_SELECTION:
+                p.should_stop = self._all_selected_category
+                p.teardown = self._load_questions
             case GamePhase.AWAITING_ANSWERS:
                 p.setup = self._reset_answers
                 p.teardown = self._update_scores
@@ -121,9 +127,33 @@ class Game:
         await asyncio.sleep(1)
         self._phase.time_remaining -= 1
 
-    def _reset_scores(self) -> None:
+    def _players_reset(self) -> None:
         for p in self._players.values():
             p.score = 0
+            p.selected_category = None
+
+    def _all_selected_category(self) -> bool:
+        """Checks if all players have selected a category.
+
+        Returns:
+            bool: True if all players have selected a category, False otherwise.
+        """
+        return all(p.selected_category is not None for p in self._players.values())
+
+    def _load_questions(self) -> None:
+        """Loads the questions for the game from the category with the most votes."""
+        votes = {c: 0 for c in Category}
+        for p in self._players.values():
+            if p.selected_category is not None:
+                votes[p.selected_category] += 1
+        if len(votes) == 0:
+            category = Category.randomize()
+        else:
+            majority = max(votes.values())
+            candidates = [c for c in votes if votes[c] == majority]
+            category = random.choice(candidates)
+        self._questions = iter(QuestionDB.get_questions(category))
+        self._current_question = next(self._questions, None)
 
     def _get_scores(self) -> dict[str, int]:
         """Gets the scores for each player.
@@ -152,7 +182,7 @@ class Game:
         Returns:
             bool: True if all players have answered the current question, False otherwise.
         """
-        return sum(p.answer != -1 for p in self._players.values()) == len(self._players)
+        return all(p.answer != -1 for p in self._players.values())
 
     def _reset_answers(self) -> None:
         """Resets the answers for each player."""

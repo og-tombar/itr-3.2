@@ -3,7 +3,7 @@
 import socketio
 from app.manager import AppManager
 from events.data import (JoinGameData, MessageData, NewPlayerData,
-                         SubmitAnswerData)
+                         SelectCategoryData, SubmitAnswerData)
 from events.events import ClientEvent
 
 
@@ -27,14 +27,22 @@ class SocketHandlers:
     @staticmethod
     def _setup() -> None:
         """Set up all socket.io event handlers."""
-        sio = SocketHandlers.SERVER
-        sio.on(ClientEvent.GET_PLAYER)(SocketHandlers.handle_get_player)
-        sio.on(ClientEvent.NEW_PLAYER)(SocketHandlers.handle_new_player)
-        sio.on(ClientEvent.JOIN_LOBBY)(SocketHandlers.handle_join_lobby)
-        sio.on(ClientEvent.JOIN_GAME)(SocketHandlers.handle_join_game)
-        sio.on(ClientEvent.SUBMIT_ANSWER)(SocketHandlers.handle_submit_answer)
-        sio.on(ClientEvent.DISCONNECT)(SocketHandlers.handle_disconnect)
-        sio.on(ClientEvent.MESSAGE)(SocketHandlers.handle_message)
+        SocketHandlers.SERVER.on(ClientEvent.GET_PLAYER)(
+            SocketHandlers.handle_get_player)
+        SocketHandlers.SERVER.on(ClientEvent.NEW_PLAYER)(
+            SocketHandlers.handle_new_player)
+        SocketHandlers.SERVER.on(ClientEvent.JOIN_LOBBY)(
+            SocketHandlers.handle_join_lobby)
+        SocketHandlers.SERVER.on(ClientEvent.JOIN_GAME)(
+            SocketHandlers.handle_join_game)
+        SocketHandlers.SERVER.on(ClientEvent.SELECT_CATEGORY)(
+            SocketHandlers.handle_select_category)
+        SocketHandlers.SERVER.on(ClientEvent.SUBMIT_ANSWER)(
+            SocketHandlers.handle_submit_answer)
+        SocketHandlers.SERVER.on(ClientEvent.DISCONNECT)(
+            SocketHandlers.handle_disconnect)
+        SocketHandlers.SERVER.on(ClientEvent.MESSAGE)(
+            SocketHandlers.handle_message)
 
     @staticmethod
     async def handle_get_player(sid: str, _: dict) -> None:
@@ -81,6 +89,18 @@ class SocketHandlers:
         event_data = JoinGameData.from_dict(data)
         print(f"[backend] {sid} joined game {event_data.game_id}")
         await SocketHandlers.MANAGER.join_game(sid, event_data)
+
+    @staticmethod
+    async def handle_select_category(sid: str, data: dict) -> None:
+        """Handles a player selecting a category.
+
+        Args:
+            sid (str): The socket ID of the player.
+            data (dict): The data from the client.
+        """
+        event_data = SelectCategoryData.from_dict(data)
+        print(f"[backend] {sid} selected category {event_data.category}")
+        await SocketHandlers.MANAGER.select_category(sid, event_data)
 
     @staticmethod
     async def handle_submit_answer(sid: str, data: dict) -> None:

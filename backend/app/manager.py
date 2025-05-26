@@ -4,7 +4,8 @@ import uuid
 
 import socketio
 from events.data import (GameUpdateData, JoinGameData, LobbyUpdateData,
-                         MessageData, NewPlayerData, SubmitAnswerData)
+                         MessageData, NewPlayerData, SelectCategoryData,
+                         SubmitAnswerData)
 from events.events import EventQueue, ServerEvent
 from game.manager import GameManager
 from lobby.lobby import Lobby
@@ -85,6 +86,17 @@ class AppManager:
         print("[app_manager] join_game", sid, data)
         player = self._player_manager.get_player(sid)
         await self._set_room(player, data.game_id)
+
+    def select_category(self, sid: str, data: SelectCategoryData) -> None:
+        """Selects a category for the game.
+
+        Args:
+            sid (str): The socket id of the player.
+            data (SelectCategoryData): The data from the client.
+        """
+        print("[app_manager] select_category", sid, data)
+        player = self._player_manager.get_player(sid)
+        player.selected_category = data.category
 
     def submit_answer(self, sid: str, data: SubmitAnswerData) -> None:
         """Submits an answer to the game.

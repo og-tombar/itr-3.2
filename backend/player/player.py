@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from questions.models import Category
+
 
 @dataclass
 class Player:
@@ -10,4 +12,5 @@ class Player:
     name: str
     room: str = ""
     score: int = 0
+    selected_category: Category | None = None
     answer: int = -1

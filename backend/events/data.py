@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from player.player import Player
+from questions.models import Category
 
 
 @dataclass
@@ -42,6 +43,17 @@ class JoinGameData(ClientEventData):
     def from_dict(d: dict) -> "JoinGameData":
         """Create a new join game data object from a dictionary."""
         return JoinGameData(d["game_id"])
+
+
+@dataclass
+class SelectCategoryData(ClientEventData):
+    """The data associated with a select category event."""
+    category: Category
+
+    @staticmethod
+    def from_dict(d: dict) -> "SelectCategoryData":
+        """Create a new select category data object from a dictionary."""
+        return SelectCategoryData(Category(d["category"]))
 
 
 @dataclass
