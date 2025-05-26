@@ -1,20 +1,17 @@
-import { GameUpdate } from "@/app/game/types";
-import { useRouter } from "next/navigation";
+import socket from "@/shared/socket";
 import styles from "./GameEnded.module.css";
-
-interface GameEndedScreenProps {
-  gameState: GameUpdate;
-}
+import { GameEndedScreenProps } from "./types";
+import useGameEnded from "./useGameEnded";
 
 export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
-  const router = useRouter();
-  const sortedScores = Object.entries(gameState.players).sort(
-    ([, a], [, b]) => b.score - a.score
-  );
-
-  const handleBackToLobby = () => {
-    router.push("/lobby");
-  };
+  const {
+    sortedScores,
+    handleBackToLobby,
+    getRank,
+    getScore,
+    isOnPodium,
+    getName,
+  } = useGameEnded(gameState);
 
   return (
     <div className={`container-fullscreen ${styles.container}`}>
@@ -51,6 +48,20 @@ export default function GameEndedScreen({ gameState }: GameEndedScreenProps) {
               ))
             ) : (
               <div className={styles.noScores}>No scores available</div>
+            )}
+            {!isOnPodium() && (
+              <div
+                key={socket.id}
+                className={`${styles.tableRow} ${styles.rankn}`}
+              >
+                <div className={styles.rankCell}>
+                  <span className={styles.rankIcon}>{getRank()}</span>
+                </div>
+                <div className={styles.nameCell}>{getName()}</div>
+                <div className={styles.scoreCell}>
+                  <span className={styles.scoreValue}>{getScore()}</span>
+                </div>
+              </div>
             )}
           </div>
         </div>

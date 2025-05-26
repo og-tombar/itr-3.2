@@ -151,11 +151,6 @@
   border-bottom: none;
 }
 
-.tableRow:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
 /* Rank-specific colors */
 .rank1 {
   background: linear-gradient(135deg, #ffd700, #fff3cd);
@@ -172,7 +167,7 @@
   color: var(--dark-gray);
 }
 
-.rank4 {
+.rankn {
   background: linear-gradient(135deg, var(--accent-teal), #e0f7fa);
   color: var(--dark-gray);
 }

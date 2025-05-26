@@ -11,8 +11,8 @@ class Lobby:
     """Manages the game lobby."""
 
     ROOM = 'lobby'
-    TIMEOUT_SECONDS = 5
-    MAX_PLAYERS = 4
+    TIMEOUT_SECONDS = 10
+    MAX_PLAYERS = 8
 
     def __init__(self):
         self._players: dict[str, Player] = {}
