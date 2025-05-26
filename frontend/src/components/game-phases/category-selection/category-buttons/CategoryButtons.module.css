@@ -4,7 +4,7 @@
   align-items: center;
   gap: var(--space-md);
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
 }
 
 .buttonRow {
@@ -20,28 +20,28 @@
 }
 
 .categoryButton {
-  padding: var(--space-md) var(--space-lg);
+  /* padding: var(--space-lg) var(--space-xl); */
   border: 3px solid var(--white);
   border-radius: var(--radius-lg);
-  background-color: var(--primary-purple);
   color: var(--white);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 140px;
-  min-height: 60px;
+  width: 230px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: transparent;
 }
 
 .categoryButton:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-  background-color: var(--accent-teal);
+  filter: brightness(1.1);
 }
 
 .categoryButton:active:not(:disabled) {
@@ -50,9 +50,8 @@
 }
 
 .categoryButton.selected {
-  background-color: var(--accent-green);
-  border-color: var(--accent-green);
   transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 .categoryButton:disabled {
@@ -65,12 +64,27 @@
 }
 
 .buttonText {
-  font-size: 0.9rem;
+  font-size: 1.3rem;
   line-height: 1.2;
   word-break: break-word;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 /* Responsive design */
+@media (max-width: 1024px) {
+  .categoriesContainer {
+    max-width: 900px;
+  }
+
+  .categoryButton {
+    width: 180px;
+    height: 75px;
+  }
+}
+
 @media (max-width: 768px) {
   .categoriesContainer {
     max-width: 100%;
@@ -86,9 +100,20 @@
   }
 
   .categoryButton {
-    min-width: 100px;
-    min-height: 50px;
+    width: 150px;
+    height: 65px;
     padding: var(--space-sm);
+  }
+
+  .buttonText {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .categoryButton {
+    width: 120px;
+    height: 60px;
   }
 
   .buttonText {

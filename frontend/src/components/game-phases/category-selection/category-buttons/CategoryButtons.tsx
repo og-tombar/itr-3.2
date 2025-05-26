@@ -5,20 +5,28 @@ import { CategoryButtonsProps } from "./types";
 export default function CategoryButtons({}: CategoryButtonsProps) {
   const { selectedCategory, handleCategoryClick } = useCategoryButtons();
 
-  // Define all categories as they appear in the backend
   const categories = {
-    // First row: Special categories + General Knowledge
-    firstRow: ["All", "Random", "General Knowledge"],
-
-    // Remaining 20 categories distributed across 4 rows of 5 each
-    secondRow: ["Art", "Board Games", "Books"],
-    thirdRow: ["Film", "Music", "Musicals & Theatres", "Television"],
-    fourthRow: ["Video Games", "Geography", "History", "Mythology", "Politics"],
-    fifthRow: ["Science & Nature", "Computers", "Mathematics", "Sports"],
+    row1: ["All", "Random", "General Knowledge"],
+    row2: ["Art", "Board Games", "Books", "Film"],
+    row3: ["Music", "Musicals & Theatres", "Television", "Video Games"],
+    row4: ["Geography", "History", "Mythology", "Politics"],
+    row5: ["Science & Nature", "Computers", "Mathematics", "Sports"],
   };
+
+  const buttonColors = [
+    "var(--accent-red)",
+    "var(--accent-teal)",
+    "var(--accent-yellow)",
+    "var(--accent-green)",
+    "var(--accent-orange)",
+    "var(--primary-purple)",
+    "var(--primary-pink)",
+  ];
 
   const renderCategoryButton = (category: string, index: number) => {
     const isSelected = selectedCategory === category;
+    const colorIndex = index % buttonColors.length;
+    const buttonColor = buttonColors[colorIndex];
 
     return (
       <button
@@ -28,6 +36,10 @@ export default function CategoryButtons({}: CategoryButtonsProps) {
           isSelected ? styles.selected : ""
         }`}
         disabled={selectedCategory !== null}
+        style={{
+          backgroundColor: isSelected ? "var(--accent-green)" : buttonColor,
+          borderColor: isSelected ? "var(--accent-green)" : "var(--white)",
+        }}
       >
         <span className={styles.buttonText}>{category}</span>
       </button>
@@ -38,36 +50,36 @@ export default function CategoryButtons({}: CategoryButtonsProps) {
     <div className={styles.categoriesContainer}>
       {/* First row - 3 buttons */}
       <div className={`${styles.buttonRow} ${styles.firstRow}`}>
-        {categories.firstRow.map((category, index) =>
+        {categories.row1.map((category, index) =>
           renderCategoryButton(category, index)
         )}
       </div>
 
-      {/* Second row - 5 buttons */}
+      {/* Second row - 4 buttons */}
       <div className={styles.buttonRow}>
-        {categories.secondRow.map((category, index) =>
+        {categories.row2.map((category, index) =>
           renderCategoryButton(category, index + 3)
         )}
       </div>
 
-      {/* Third row - 5 buttons */}
+      {/* Third row - 4 buttons */}
       <div className={styles.buttonRow}>
-        {categories.thirdRow.map((category, index) =>
-          renderCategoryButton(category, index + 8)
+        {categories.row3.map((category, index) =>
+          renderCategoryButton(category, index + 7)
         )}
       </div>
 
-      {/* Fourth row - 5 buttons */}
+      {/* Fourth row - 4 buttons */}
       <div className={styles.buttonRow}>
-        {categories.fourthRow.map((category, index) =>
-          renderCategoryButton(category, index + 13)
+        {categories.row4.map((category, index) =>
+          renderCategoryButton(category, index + 11)
         )}
       </div>
 
-      {/* Fifth row - 5 buttons */}
+      {/* Fifth row - 4 buttons */}
       <div className={styles.buttonRow}>
-        {categories.fifthRow.map((category, index) =>
-          renderCategoryButton(category, index + 18)
+        {categories.row5.map((category, index) =>
+          renderCategoryButton(category, index + 15)
         )}
       </div>
     </div>
