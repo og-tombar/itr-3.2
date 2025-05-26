@@ -2,12 +2,13 @@
 
 import asyncio
 import random
+import uuid
 from typing import Generator
 
 from events.data import GameUpdateData
 from events.events import EventQueue, ServerEvent
 from game.models import GamePhase, Phase
-from player.player import Player
+from player.player import Player, PlayerType, bot_names
 from questions.models import Category, Question
 from questions.questions import QuestionDB
 
@@ -29,6 +30,9 @@ class Game:
 
     async def start(self) -> None:
         """Starts the game."""
+        if len(self._players) == 1:
+            self._add_bots()
+
         for p in self._phases():
             self._phase = p
             await self._run_phase()
@@ -63,6 +67,14 @@ class Game:
     #################################################
     # Private methods
     #################################################
+
+    def _add_bots(self) -> None:
+        """Adds bots to the game."""
+        random.shuffle(bot_names)
+        names = bot_names[:3]
+        for name in names:
+            bot = Player(type=PlayerType.BOT, sid=str(uuid.uuid4()), name=name)
+            self._players[bot.sid] = bot
 
     def _phases(self) -> Generator[Phase, None, None]:
         """Yields the phases of the game.
@@ -100,6 +112,7 @@ class Game:
             case GamePhase.AWAITING_ANSWERS:
                 p.setup = self._reset_answers
                 p.should_stop = self._all_answered
+                p.teardown = self._update_bot_scores
         return p
 
     async def _run_phase(self) -> None:
@@ -140,6 +153,17 @@ class Game:
         await asyncio.sleep(1)
         self._phase.time_remaining -= 1
 
+    def _get_players_by_type(self, player_type: PlayerType) -> list[Player]:
+        """Gets the players by type.
+
+        Args:
+            player_type (PlayerType): The type of player to get.
+
+        Returns:
+            list[Player]: The players by type.
+        """
+        return [p for p in self._players.values() if p.type == player_type]
+
     def _players_reset(self) -> None:
         for p in self._players.values():
             p.score = 0
@@ -151,14 +175,16 @@ class Game:
         Returns:
             bool: True if all players have selected a category, False otherwise.
         """
-        return all(p.selected_category is not None for p in self._players.values())
+        humans = self._get_players_by_type(PlayerType.HUMAN)
+        return all(h.selected_category is not None for h in humans)
 
     def _load_questions(self) -> None:
         """Loads the questions for the game from the category with the most votes."""
         votes = {c: 0 for c in Category}
-        for p in self._players.values():
-            if p.selected_category is not None:
-                votes[p.selected_category] += 1
+        humans = self._get_players_by_type(PlayerType.HUMAN)
+        for h in humans:
+            if h.selected_category is not None:
+                votes[h.selected_category] += 1
         if len(votes) == 0:
             self._category = Category.randomize()
         else:
@@ -168,21 +194,11 @@ class Game:
         self._questions = iter(QuestionDB.get_questions(self._category))
         self._current_question = next(self._questions, None)
 
-    def _get_scores(self) -> dict[str, int]:
-        """Gets the scores for each player.
-
-        Returns:
-            dict[str, int]: The scores for each player.
-        """
-        return {p.sid: p.score for p in self._players.values()}
-
-    def _get_answers(self) -> dict[str, int]:
-        """Gets the answers for each player.
-
-        Returns:
-            dict[str, int]: The answers for each player.
-        """
-        return {p.sid: p.answer for p in self._players.values()}
+    def _update_bot_scores(self) -> None:
+        """Updates the scores for each bot."""
+        bots = self._get_players_by_type(PlayerType.BOT)
+        for b in bots:
+            b.score += b.level.mock_round_points()
 
     def _all_answered(self) -> bool:
         """Checks if all players have answered the current question.
@@ -190,7 +206,8 @@ class Game:
         Returns:
             bool: True if all players have answered the current question, False otherwise.
         """
-        return all(p.answer != -1 for p in self._players.values())
+        humans = self._get_players_by_type(PlayerType.HUMAN)
+        return all(h.answer != -1 for h in humans)
 
     def _reset_answers(self) -> None:
         """Resets the answers for each player."""

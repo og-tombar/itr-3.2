@@ -20,7 +20,7 @@ class PlayerManager:
         Returns:
             Player: The player object.
         """
-        p = Player(sid, name)
+        p = Player(sid=sid, name=name)
         self._players[sid] = p
         return p
 
