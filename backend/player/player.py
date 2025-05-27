@@ -37,11 +37,11 @@ class BotLevel(str, Enum):
             return 0
         match self:
             case BotLevel.NOVICE:
-                return random.randint(1, 10)
+                return random.randint(1, 20)
             case BotLevel.INTERMEDIATE:
-                return random.randint(6, 15)
+                return random.randint(6, 25)
             case BotLevel.EXPERT:
-                return random.randint(11, 20)
+                return random.randint(11, 30)
 
 
 class PowerUp(str, Enum):

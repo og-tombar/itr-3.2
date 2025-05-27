@@ -11,8 +11,7 @@ class Lobby:
     """Manages the game lobby."""
 
     ROOM = 'lobby'
-    TIMEOUT_SECONDS = 10
-    MAX_PLAYERS = 8
+    TIMEOUT_SECONDS = 30
 
     def __init__(self):
         self._players: dict[str, Player] = {}
@@ -63,10 +62,7 @@ class Lobby:
 
     async def _tick(self) -> None:
         """Called when the timer ticks."""
-        should_start_game = (
-            len(self._players) >= self.MAX_PLAYERS
-            or (self._time_remaining <= 0 < len(self._players))
-        )
+        should_start_game = self._time_remaining <= 0 < len(self._players)
         data = LobbyUpdateData(
             players=list(self._players.keys()),
             time_remaining=self._time_remaining,
