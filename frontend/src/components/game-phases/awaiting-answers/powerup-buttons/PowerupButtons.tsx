@@ -24,10 +24,10 @@ export default function PowerupButtons({ currentPlayer }: PowerupButtonsProps) {
           }`}
           onClick={() => handlePowerupClick(PowerUp.FIFTY_FIFTY)}
           disabled={isPowerupUsed(PowerUp.FIFTY_FIFTY)}
-          title="Remove two wrong answers"
         >
           <span className={styles.powerupText}>50/50</span>
         </button>
+        <div className={styles.tooltip}>Remove two wrong answers</div>
       </div>
 
       {/* Call a Friend Powerup */}
@@ -38,10 +38,10 @@ export default function PowerupButtons({ currentPlayer }: PowerupButtonsProps) {
           }`}
           onClick={() => handlePowerupClick(PowerUp.CALL_FRIEND)}
           disabled={isPowerupUsed(PowerUp.CALL_FRIEND)}
-          title="Get AI assistance"
         >
           <span className={styles.powerupEmoji}>📞</span>
         </button>
+        <div className={styles.tooltip}>Get help from a friend in chat</div>
       </div>
 
       {/* Double Points Powerup */}
@@ -52,10 +52,10 @@ export default function PowerupButtons({ currentPlayer }: PowerupButtonsProps) {
           }`}
           onClick={() => handlePowerupClick(PowerUp.DOUBLE_POINTS)}
           disabled={isPowerupUsed(PowerUp.DOUBLE_POINTS)}
-          title="Double your points"
         >
           <span className={styles.powerupText}>x2</span>
         </button>
+        <div className={styles.tooltip}>Double round points</div>
       </div>
     </div>
   );
