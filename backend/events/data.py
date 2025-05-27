@@ -183,7 +183,7 @@ class MessageData(EventData):
     username: str
     message: str
     destination_id: str = ""
-    timestamp: str = datetime.now().isoformat()
+    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
     @staticmethod
     def from_dict(d: dict) -> "MessageData":
