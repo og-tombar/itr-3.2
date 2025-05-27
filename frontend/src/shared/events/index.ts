@@ -6,6 +6,7 @@ export enum ClientEvent {
   SET_BOT_LEVEL = "set_bot_level",
   SELECT_CATEGORY = "select_category",
   SUBMIT_ANSWER = "submit_answer",
+  USE_POWERUP = "use_powerup",
   MESSAGE = "client_message",
   DISCONNECT = "disconnect",
 }

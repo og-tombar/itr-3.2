@@ -1,6 +1,5 @@
 import { Player } from "@/app/game/types";
 
-export interface AnswerButtonsProps {
-  options: string[];
+export interface PowerupButtonsProps {
   currentPlayer: Player | null;
 }

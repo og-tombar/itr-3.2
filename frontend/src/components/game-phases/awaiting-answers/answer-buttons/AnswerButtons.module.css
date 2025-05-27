@@ -43,3 +43,9 @@
 .buttonText {
   font-weight: bold;
 }
+
+.hiddenButton {
+  min-height: 120px;
+  width: 450px;
+  /* Empty space to maintain grid layout when powerup hides options */
+}

@@ -2,7 +2,10 @@ import useAnswerButtons from "./useAnswerButtons";
 import styles from "./AnswerButtons.module.css";
 import { AnswerButtonsProps } from "./types";
 
-export default function AnswerButtons({ options }: AnswerButtonsProps) {
+export default function AnswerButtons({
+  options,
+  currentPlayer,
+}: AnswerButtonsProps) {
   const { buttonColors, answer, handleAnswerClick, didAnswer } =
     useAnswerButtons();
 
@@ -12,6 +15,18 @@ export default function AnswerButtons({ options }: AnswerButtonsProps) {
         {options.slice(0, 4).map((option, index) => {
           const isSelected = answer === index;
           const isUnselected = didAnswer() && !isSelected;
+          const isVisible = currentPlayer
+            ? currentPlayer.visible_options[index]
+            : true;
+
+          // Don't render the button if it's not visible (fifty-fifty powerup)
+          if (!isVisible) {
+            return (
+              <div key={index} className={styles.hiddenButton}>
+                {/* Empty space to maintain grid layout */}
+              </div>
+            );
+          }
 
           return (
             <button
