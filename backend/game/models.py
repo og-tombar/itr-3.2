@@ -26,7 +26,7 @@ class GamePhase(str, Enum):
             case GamePhase.BOT_LEVEL_SELECTION: return 600
             case GamePhase.CATEGORY_SELECTION: return 45
             case GamePhase.CATEGORY_RESULTS: return 3
-            case GamePhase.AWAITING_ANSWERS: return 20
+            case GamePhase.AWAITING_ANSWERS: return 30
             case GamePhase.ROUND_ENDED: return 3
             case GamePhase.GAME_ENDED: return 5
             case _: return 0
