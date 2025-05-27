@@ -6,8 +6,10 @@ import socketio
 import uvicorn
 from api.socket import SocketHandlers
 from app.manager import AppManager
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
+load_dotenv()
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
 manager = AppManager()
 

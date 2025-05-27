@@ -15,6 +15,7 @@ class ClientEvent(str, Enum):
     SET_BOT_LEVEL = "set_bot_level"
     SELECT_CATEGORY = "select_category"
     SUBMIT_ANSWER = "submit_answer"
+    USE_POWERUP = "use_powerup"
     DISCONNECT = "disconnect"
     MESSAGE = "client_message"
 

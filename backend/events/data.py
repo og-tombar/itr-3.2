@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from player.player import BotLevel, Player
+from player.player import BotLevel, Player, PowerUp
 from questions.models import Category
 
 
@@ -121,6 +121,17 @@ class SubmitAnswerData(ClientEventData):
 
 
 @dataclass
+class UsePowerupData(ClientEventData):
+    """The data associated with a use powerup event."""
+    powerup: PowerUp
+
+    @staticmethod
+    def from_dict(d: dict) -> "UsePowerupData":
+        """Create a new use powerup data object from a dictionary."""
+        return UsePowerupData(PowerUp(d["powerup"]))
+
+
+@dataclass
 class PlayerInfoData(EventData):
     """The data associated with a player info event."""
     id: str
@@ -171,6 +182,7 @@ class MessageData(EventData):
     sender_id: str
     username: str
     message: str
+    destination_id: str = ""
     timestamp: str = datetime.now().isoformat()
 
     @staticmethod
@@ -178,9 +190,17 @@ class MessageData(EventData):
         """Create a new message data object from a dictionary.
 
         Args:
-            d (dict): The dictionary to create the object from.
+            d(dict): The dictionary to create the object from .
 
         Returns:
             MessageData: The message data object.
         """
-        return MessageData(d["id"], d["sender_id"], d["username"], d["message"], d["timestamp"])
+        dest_id = d.get("destination_id", "")
+        timestamp = d.get("timestamp", datetime.now().isoformat())
+        return MessageData(
+            id=d["id"],
+            sender_id=d["sender_id"],
+            username=d["username"],
+            message=d["message"],
+            destination_id=dest_id,
+            timestamp=timestamp)

@@ -5,7 +5,7 @@ import uuid
 
 from events.data import NewGameData
 from game.game import Game
-from player.player import BotLevel, Player
+from player.player import BotLevel, Player, PowerUp
 
 
 class GameManager:
@@ -50,6 +50,17 @@ class GameManager:
         game = self._games.get(player.room)
         if game:
             game.submit_answer(player, answer)
+
+    async def use_powerup(self, player: Player, powerup: PowerUp) -> None:
+        """Uses a powerup for the player.
+
+        Args:
+            player (Player): The player who used the powerup.
+            powerup (PowerUp): The powerup used by the player.
+        """
+        game = self._games.get(player.room)
+        if game:
+            await game.use_powerup(player, powerup)
 
     def remove_player(self, player: Player) -> None:
         """Removes a player from the game.

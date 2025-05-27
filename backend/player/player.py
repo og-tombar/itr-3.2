@@ -1,7 +1,7 @@
 """Player class."""
 
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 from questions.models import Category
@@ -44,6 +44,13 @@ class BotLevel(str, Enum):
                 return random.randint(11, 20)
 
 
+class PowerUp(str, Enum):
+    """The power ups for the player."""
+    FIFTY_FIFTY = "fifty_fifty"
+    CALL_FRIEND = "call_friend"
+    DOUBLE_POINTS = "double_points"
+
+
 @dataclass
 class Player:
     """A player in the game."""
@@ -55,6 +62,23 @@ class Player:
     score: int = 0
     selected_category: Category | None = None
     answer: int = -1
+    visible_options: list[bool] = field(
+        default_factory=lambda: [True, True, True, True])
+    used_powerups: list[PowerUp] = field(default_factory=list)
+    double_points: bool = False
+
+    def total_reset(self) -> None:
+        """Resets the player for a new game."""
+        self.score = 0
+        self.selected_category = None
+        self.used_powerups.clear()
+        self.round_reset()
+
+    def round_reset(self) -> None:
+        """Resets the player for a new round."""
+        self.answer = -1
+        self.visible_options = [True, True, True, True]
+        self.double_points = False
 
 
 bot_names = [

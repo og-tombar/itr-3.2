@@ -5,7 +5,7 @@ import uuid
 import socketio
 from events.data import (GameUpdateData, JoinGameData, LobbyUpdateData,
                          MessageData, NewPlayerData, SelectCategoryData,
-                         SetBotLevelData, SubmitAnswerData)
+                         SetBotLevelData, SubmitAnswerData, UsePowerupData)
 from events.events import EventQueue, ServerEvent
 from game.manager import GameManager
 from lobby.lobby import Lobby
@@ -34,6 +34,7 @@ class AppManager:
                 case ServerEvent.LOBBY_UPDATE: await self._lobby_update(data)
                 case ServerEvent.NEW_GAME: await self._new_game()
                 case ServerEvent.GAME_UPDATE: await self._game_update(data)
+                case ServerEvent.MESSAGE: await self.send_message(data)
 
     ############################################################
     # Client event handlers
@@ -63,6 +64,7 @@ class AppManager:
             sender_id="0",
             username="Server",
             message=f"Hi {player.name}, and welcome to Takooh! 🐟",
+            destination_id=sid,
         )
         await self.sio.emit(ServerEvent.MESSAGE, message.__dict__)
 
@@ -120,6 +122,17 @@ class AppManager:
         player = self._player_manager.get_player(sid)
         self._game_manager.submit_answer(player, data.answer)
 
+    async def use_powerup(self, sid: str, data: UsePowerupData) -> None:
+        """Uses a powerup for the player.
+
+        Args:
+            sid (str): The socket id of the player.
+            data (UsePowerupData): The data from the client.
+        """
+        print("[app_manager] use_powerup", sid, data)
+        player = self._player_manager.get_player(sid)
+        await self._game_manager.use_powerup(player, data.powerup)
+
     async def send_message(self, data: MessageData) -> None:
         """Sends a message to the players.
 
@@ -128,7 +141,8 @@ class AppManager:
             data (MessageData): The data to emit.
         """
         print("[app_manager] send_message", data)
-        await self.sio.emit(ServerEvent.MESSAGE, data.__dict__)
+        dest = data.destination_id if data.destination_id != "" else None
+        await self.sio.emit(ServerEvent.MESSAGE, data.__dict__, to=dest)
 
     async def disconnect(self, sid: str) -> None:
         """Disconnects a player from the server.
@@ -169,7 +183,6 @@ class AppManager:
         Args:
             game (GameUpdateData): The game data to emit.
         """
-        print("[app_manager] game_update", game)
         await self.sio.emit(ServerEvent.GAME_UPDATE, game.to_dict(), room=game.id)
 
     ############################################################

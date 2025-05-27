@@ -5,10 +5,11 @@ import random
 import uuid
 from typing import Generator
 
-from events.data import GameUpdateData
+from events.data import GameUpdateData, MessageData
 from events.events import EventQueue, ServerEvent
 from game.models import GamePhase, Phase
-from player.player import BotLevel, Player, PlayerType, bot_names
+from gemini.gemini import Gemini
+from player.player import BotLevel, Player, PlayerType, PowerUp, bot_names
 from questions.models import Category, Question
 from questions.questions import QuestionDB
 
@@ -51,8 +52,26 @@ class Game:
             answer (int): The answer submitted by the player.
         """
         player.answer = answer
+        points = self._phase.time_remaining
+        if player.double_points:
+            points *= 2
         if answer == self._current_question.correct_index:
-            player.score += self._phase.time_remaining
+            player.score += points
+
+    async def use_powerup(self, player: Player, powerup: PowerUp) -> None:
+        """Uses a powerup for the player.
+
+        Args:
+            player (Player): The player who uses the powerup.
+            powerup (PowerUp): The powerup to use.
+        """
+        if powerup in player.used_powerups:
+            return
+        player.used_powerups.append(powerup)
+        match powerup:
+            case PowerUp.FIFTY_FIFTY: self._fifty_fifty(player)
+            case PowerUp.CALL_FRIEND: await self._call_friend(player)
+            case PowerUp.DOUBLE_POINTS: player.double_points = True
 
     def remove_player(self, player: Player) -> None:
         """Removes a player from the game.
@@ -124,7 +143,7 @@ class Game:
                 p.should_stop = self._all_selected_category
                 p.teardown = self._load_questions
             case GamePhase.AWAITING_ANSWERS:
-                p.setup = self._reset_answers
+                p.setup = self._round_reset
                 p.should_stop = self._all_answered
                 p.teardown = self._update_bot_scores
         return p
@@ -179,9 +198,14 @@ class Game:
         return [p for p in self._players.values() if p.type == player_type]
 
     def _players_reset(self) -> None:
+        """Resets the players for a new game."""
         for p in self._players.values():
-            p.score = 0
-            p.selected_category = None
+            p.total_reset()
+
+    def _round_reset(self) -> None:
+        """Resets the answers for each player."""
+        for p in self._players.values():
+            p.round_reset()
 
     def _is_bot_level_set(self) -> bool:
         """Checks if the bot level has been set.
@@ -231,7 +255,42 @@ class Game:
         humans = self._get_players_by_type(PlayerType.HUMAN)
         return all(h.answer != -1 for h in humans)
 
-    def _reset_answers(self) -> None:
-        """Resets the answers for each player."""
-        for p in self._players.values():
-            p.answer = -1
+    def _fifty_fifty(self, player: Player) -> None:
+        """Hides two incorrect options for the player.
+
+        Args:
+            player (Player): The player who uses the powerup.
+        """
+        correct = self._current_question.correct_index
+        indices = [i for i in range(4) if i != correct]
+        random.shuffle(indices)
+        player.visible_options[indices[0]] = False
+        player.visible_options[indices[1]] = False
+
+    async def _call_friend(self, player: Player) -> None:
+        """Sends a message to the player's friend.
+
+        Args:
+            player (Player): The player who uses the powerup.
+        """
+        await self._friend_message(player.sid, "Thinking...")
+        q = self._current_question
+        prompt = Gemini.call_friend_prompt(q.text, q.options)
+        response = await Gemini.query_async(prompt)
+        await self._friend_message(player.sid, response)
+
+    async def _friend_message(self, destination_id: str, message: str) -> None:
+        """Sends a message to the player's friend.
+
+        Args:
+            destination_id (str): The ID of the player to send the message to.
+            message (str): The message to send to the player.
+        """
+        message = MessageData(
+            id=str(uuid.uuid4()),
+            sender_id=str(uuid.uuid4()),
+            username="Friend",
+            message=message,
+            destination_id=destination_id
+        )
+        await EventQueue.put(ServerEvent.MESSAGE, message)
