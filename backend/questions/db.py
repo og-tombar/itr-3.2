@@ -1,4 +1,4 @@
-"""Question management service."""
+"""Question database."""
 
 import sqlite3
 from pathlib import Path
@@ -28,11 +28,11 @@ class QuestionDB:
             cur = conn.cursor()
             if category != Category.ALL:
                 cur.execute(
-                    "SELECT * FROM questions WHERE category = ? ORDER BY RANDOM() LIMIT 10",
+                    "SELECT * FROM questions WHERE category = ? ORDER BY RANDOM()",
                     (category,))
             else:
                 cur.execute(
-                    "SELECT * FROM questions ORDER BY RANDOM() LIMIT 10")
+                    "SELECT * FROM questions ORDER BY RANDOM()")
             rows = cur.fetchall()
             questions = [Question.from_row(r) for r in rows]
             cur.close()

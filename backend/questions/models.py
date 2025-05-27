@@ -43,8 +43,9 @@ class Category(str, Enum):
 class Question:
     """The data for a question. Includes the correct answer (do not send to clients)."""
     text: str
-    options: list[str]
     correct_index: int
+    options: list[str]
+    difficulty: int
 
     @staticmethod
     def from_row(r: tuple) -> "Question":
@@ -58,6 +59,7 @@ class Question:
         """
         return Question(
             text=r[2],
-            options=r[4:],
-            correct_index=r[3]
+            correct_index=r[3],
+            options=r[4:8],
+            difficulty=r[8]
         )

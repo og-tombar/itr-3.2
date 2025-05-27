@@ -11,11 +11,13 @@ from game.models import GamePhase, Phase
 from gemini.gemini import Gemini
 from player.player import BotLevel, Player, PlayerType, PowerUp, bot_names
 from questions.models import Category, Question
-from questions.questions import QuestionDB
+from questions.provider import QuestionProvider
 
 
 class Game:
     """A game of trivia."""
+
+    NUM_QUESTIONS = 10
 
     def __init__(self, game_id: str, players: dict[str, Player]):
         self._id = game_id
@@ -23,7 +25,7 @@ class Game:
         self._bot_level: BotLevel | None = None
         self._category = Category.RANDOM
         self._phase: Phase | None = None
-        self._questions: Generator[Question, None, None] = iter([])
+        self._question_provider = QuestionProvider()
         self._current_question: Question | None = None
 
     #################################################
@@ -117,10 +119,10 @@ class Game:
             yield self._make_phase(GamePhase.BOT_LEVEL_SELECTION)
         yield self._make_phase(GamePhase.CATEGORY_SELECTION)
         yield self._make_phase(GamePhase.CATEGORY_RESULTS)
-        while self._current_question is not None:
+        for _ in range(Game.NUM_QUESTIONS):
             yield self._make_phase(GamePhase.AWAITING_ANSWERS)
             yield self._make_phase(GamePhase.ROUND_ENDED)
-            self._current_question = next(self._questions, None)
+            self._next_question()
         yield self._make_phase(GamePhase.GAME_ENDED)
 
     def _make_phase(self, title: GamePhase) -> Phase:
@@ -146,6 +148,8 @@ class Game:
                 p.setup = self._round_reset
                 p.should_stop = self._all_answered
                 p.teardown = self._update_bot_scores
+            case GamePhase.ROUND_ENDED:
+                p.setup = self._adjust_difficulty
         return p
 
     async def _run_phase(self) -> None:
@@ -156,6 +160,11 @@ class Game:
             await self._tick()
             await self._update()
         self._phase.teardown()
+
+    def _next_question(self) -> None:
+        """Gets the next question."""
+        self._current_question = next(
+            self._question_provider.questions(), None)
 
     async def _update(self) -> None:
         """Updates the game state and yields the current state."""
@@ -237,8 +246,8 @@ class Game:
             majority = max(votes.values())
             candidates = [c for c in votes if votes[c] == majority]
             self._category = random.choice(candidates)
-        self._questions = iter(QuestionDB.get_questions(self._category))
-        self._current_question = next(self._questions, None)
+        self._question_provider.load_questions(self._category)
+        self._next_question()
 
     def _update_bot_scores(self) -> None:
         """Updates the scores for each bot."""
@@ -254,6 +263,16 @@ class Game:
         """
         humans = self._get_players_by_type(PlayerType.HUMAN)
         return all(h.answer != -1 for h in humans)
+
+    def _adjust_difficulty(self) -> None:
+        """Adjusts the difficulty of the questions."""
+        humans = self._get_players_by_type(PlayerType.HUMAN)
+        answers = [h.answer for h in humans]
+        correct = [a == self._current_question.correct_index for a in answers]
+        if all(correct):
+            self._question_provider.increase_difficulty()
+        if not any(correct):
+            self._question_provider.decrease_difficulty()
 
     def _fifty_fifty(self, player: Player) -> None:
         """Hides two incorrect options for the player.
