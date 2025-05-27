@@ -63,7 +63,7 @@ class AppManager:
             id=str(uuid.uuid4()),
             sender_id="0",
             username="Server",
-            message=f"Hi {player.name}, and welcome to Takooh! 🐟",
+            message=f"{player.name} joined the game! 🐟",
             destination_id=sid,
         )
         await self.sio.emit(ServerEvent.MESSAGE, message.__dict__)
@@ -137,11 +137,12 @@ class AppManager:
         """Sends a message to the players.
 
         Args:
-            sid (str): The socket id of the player.
             data (MessageData): The data to emit.
         """
         print("[app_manager] send_message", data)
         dest = data.destination_id if data.destination_id != "" else None
+        player = self._player_manager.get_player(data.sender_id)
+        data.username = player.name
         await self.sio.emit(ServerEvent.MESSAGE, data.__dict__, to=dest)
 
     async def disconnect(self, sid: str) -> None:
