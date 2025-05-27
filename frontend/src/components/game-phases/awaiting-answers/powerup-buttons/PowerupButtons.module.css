@@ -1,7 +1,7 @@
 .powerupContainer {
   position: absolute;
-  top: 260px;
-  right: 80px;
+  top: 50px;
+  left: 50px;
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
@@ -17,12 +17,8 @@
   height: 100px;
   border-radius: 50%;
   border: 3px solid var(--white);
-  background: linear-gradient(
-    135deg,
-    var(--accent-purple),
-    var(--secondary-blue)
-  );
   color: var(--white);
+  font-family: var(--font-heading);
   font-weight: bold;
   font-size: 1.2rem;
   cursor: pointer;
@@ -33,14 +29,42 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-.powerupButton:hover:not(.disabled) {
+/* Fifty-Fifty Button - Orange/Red gradient */
+.fiftyFiftyButton {
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+}
+
+.fiftyFiftyButton:hover:not(.disabled) {
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, var(--accent-red), #ff4757);
+}
+
+/* Call Friend Button - Teal/Green gradient */
+.callFriendButton {
+  background: linear-gradient(135deg, var(--accent-teal), white);
+}
+
+.callFriendButton:hover:not(.disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, var(--accent-green), #20bf6b);
+}
+
+/* Double Points Button - Yellow/Orange gradient */
+.doublePointsButton {
   background: linear-gradient(
     135deg,
-    var(--accent-purple),
-    var(--primary-purple)
+    var(--accent-green),
+    var(--accent-yellow)
   );
+}
+
+.doublePointsButton:hover:not(.disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, var(--accent-orange), #ffa502);
+  color: var(--white);
 }
 
 .powerupButton:active:not(.disabled) {
@@ -59,6 +83,7 @@
   font-size: 1.8rem;
   font-weight: 700;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-family: var(--font-heading);
 }
 
 .powerupEmoji {

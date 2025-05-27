@@ -1,3 +1,4 @@
+import { PowerUp } from "@/app/game/types";
 import { PowerupButtonsProps } from "./types";
 import usePowerupButtons from "./usePowerupButtons";
 import styles from "./PowerupButtons.module.css";
@@ -9,7 +10,7 @@ export default function PowerupButtons({ currentPlayer }: PowerupButtonsProps) {
     return null;
   }
 
-  const isPowerupUsed = (powerup: string) => {
+  const isPowerupUsed = (powerup: PowerUp) => {
     return currentPlayer.used_powerups.includes(powerup);
   };
 
@@ -18,12 +19,12 @@ export default function PowerupButtons({ currentPlayer }: PowerupButtonsProps) {
       {/* Fifty-Fifty Powerup */}
       <div className={styles.powerupButtonWrapper}>
         <button
-          className={`${styles.powerupButton} ${
-            isPowerupUsed("fifty_fifty") ? styles.disabled : ""
+          className={`${styles.powerupButton} ${styles.fiftyFiftyButton} ${
+            isPowerupUsed(PowerUp.FIFTY_FIFTY) ? styles.disabled : ""
           }`}
-          onClick={() => handlePowerupClick("fifty_fifty")}
-          disabled={isPowerupUsed("fifty_fifty")}
-          title="50/50 - Remove two incorrect answers"
+          onClick={() => handlePowerupClick(PowerUp.FIFTY_FIFTY)}
+          disabled={isPowerupUsed(PowerUp.FIFTY_FIFTY)}
+          title="Remove two wrong answers"
         >
           <span className={styles.powerupText}>50/50</span>
         </button>
@@ -32,26 +33,26 @@ export default function PowerupButtons({ currentPlayer }: PowerupButtonsProps) {
       {/* Call a Friend Powerup */}
       <div className={styles.powerupButtonWrapper}>
         <button
-          className={`${styles.powerupButton} ${
-            isPowerupUsed("call_friend") ? styles.disabled : ""
+          className={`${styles.powerupButton} ${styles.callFriendButton} ${
+            isPowerupUsed(PowerUp.CALL_FRIEND) ? styles.disabled : ""
           }`}
-          onClick={() => handlePowerupClick("call_friend")}
-          disabled={isPowerupUsed("call_friend")}
-          title="Call a Friend - Get AI assistance"
+          onClick={() => handlePowerupClick(PowerUp.CALL_FRIEND)}
+          disabled={isPowerupUsed(PowerUp.CALL_FRIEND)}
+          title="Get AI assistance"
         >
-          <span className={styles.powerupEmoji}>💬</span>
+          <span className={styles.powerupEmoji}>📞</span>
         </button>
       </div>
 
       {/* Double Points Powerup */}
       <div className={styles.powerupButtonWrapper}>
         <button
-          className={`${styles.powerupButton} ${
-            isPowerupUsed("double_points") ? styles.disabled : ""
+          className={`${styles.powerupButton} ${styles.doublePointsButton} ${
+            isPowerupUsed(PowerUp.DOUBLE_POINTS) ? styles.disabled : ""
           }`}
-          onClick={() => handlePowerupClick("double_points")}
-          disabled={isPowerupUsed("double_points")}
-          title="Double Points - Get 2x points for this round"
+          onClick={() => handlePowerupClick(PowerUp.DOUBLE_POINTS)}
+          disabled={isPowerupUsed(PowerUp.DOUBLE_POINTS)}
+          title="Double your points"
         >
           <span className={styles.powerupText}>x2</span>
         </button>

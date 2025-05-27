@@ -20,7 +20,7 @@ export interface Player {
   score: number;
   answer: number;
   visible_options: boolean[];
-  used_powerups: string[];
+  used_powerups: PowerUp[];
   double_points: boolean;
 }
 
