@@ -25,7 +25,7 @@ export default function PowerupButtons({ currentPlayer }: PowerupButtonsProps) {
           disabled={isPowerupUsed("fifty_fifty")}
           title="50/50 - Remove two incorrect answers"
         >
-          <span className={styles.powerupText}>50</span>
+          <span className={styles.powerupText}>50/50</span>
         </button>
       </div>
 
