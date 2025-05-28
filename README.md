@@ -1,194 +1,254 @@
-# Software Design Document
+# 🎯 Real-Time Multiplayer Trivia Game
 
-Real-Time Multiplayer Trivia Competition
+A modern, real-time multiplayer trivia game built with Next.js and Python, featuring intelligent bots, AI-powered assistance, and dynamic gameplay mechanics.
 
-## Table of Contents
+![Game Lobby](./resources/images/lobby.png)
+_Players join the lobby and wait for matchmaking_
 
-1.  [Introduction](#1-introduction)
-2.  [System Overview](#2-system-overview)
-3.  [Architecture](#3-architecture)
-    - [Backend](#31-backend)
-    - [Frontend](#32-frontend)
-4.  [Data Models](#4-data-models)
-5.  [Core Flows](#5-core-flows)
-    - [Matchmaking & Game Start](#matchmaking--game-start)
-    - [Question Loop & Scoring](#question-loop--scoring)
-    - [Helps & LLM Integration](#helps--llm-integration)
-    - [Chat & Emoji](#chat--emoji)
-6.  [Configuration](#6-configuration)
-7.  [Deployment & Scaling](#7-deployment--scaling)
-8.  [Testing Strategy](#8-testing-strategy)
-9.  [Next Steps & Extensions](#9-next-steps--extensions)
+## 🌟 Features
 
-## 1. Introduction
+### 🎮 Core Gameplay
 
-This document outlines the design for a real-time, socket-driven trivia game. Human players are matched in 30-second pools, play 10 adaptive-difficulty questions, can use special "helps," and chat live. Single players are paired with 1–3 simulated bots. Technologies:
+- **Real-time multiplayer**: Up to 4 players compete simultaneously
+- **Smart matchmaking**: 30-second lobby system with automatic game creation
+- **10 questions per game**: Fast-paced rounds with time pressure
+- **Multiple categories**: 19 trivia categories from featuring more than 600 questions
+- **Adaptive difficulty**: Questions adjust based on player performance
 
-- **Backend**: Python + Flask-SocketIO
-- **Frontend**: Next.js + Socket.IO client
+![Category Selection](./resources/images/categories.png)
+_Players vote on their preferred trivia category_
 
-A software engineer can follow this doc to implement a maintainable, testable, and extensible system.
+### 🤖 Intelligent Bot System
 
-## 2. System Overview
+- **Dynamic bot addition**: Single players get paired with 3 AI opponents
+- **Three bot difficulty levels**: Novice, Intermediate and Expert
 
-- **Matchmaking**: Players join a "lobby." After 30 s (or once enough players join), a game is created.
-- **Game Play**: 10 questions per game. Each question is timed; faster correct answers score more. Difficulty adapts per-player performance.
-- **Helps**:
-  - **50/50**: Remove two wrong options.
-  - **Call a Friend**: Query an LLM for advice.
-  - **Double Score**: Doubles points earned on that question.
-- **Bots**: If < 2 humans, spawn 1–3 bots with imperfect accuracy and random delays.
-- **Chat**: In-game chat + emoji support.
-- **Leaderboard**: Displayed at game end with winner.
+![Bot Level Selection](./resources/images/bot-levels.png)
+_Choose your bot opponents' difficulty level_
 
-## 3. Architecture
+### ⚡ Power-ups & Strategy
 
-### 3.1 Backend
+- **50/50**: Eliminates two incorrect answers
+- **Call a Friend**: AI-powered hint using Google's Gemini API
+- **Double Points**: Doubles the score for that question
+- **One-time use**: Strategic decision-making required
 
-```text
-backend/
-├── app.py
-├── config.py
-├── requirements.txt
-├── matchmaking.py
-├── game_manager.py
-├── question_provider.py
-├── bot_player.py
-├── chat.py
-├── helpers/
-│   ├── llm_client.py
-│   └── timers.py
-└── models/
-    ├── player.py
-    ├── game.py
-    └── question.py
+![Question with Powerups](./resources/images/questions.png)
+_Answer questions with strategic power-up usage_
+
+### 🏆 Competitive Elements
+
+- **Time-based scoring**: Faster correct answers earn more points
+- **Rankings**: Real-time score updates during gameplay
+
+![Game Results](./resources/images/leaderboard.png)
+_Final leaderboard with detailed scoring_
+
+## 🛠️ Technical Architecture
+
+### Backend (Python)
+
+- **FastAPI + Socket.IO**: High-performance async server
+- **Event-driven architecture**: Clean separation of concerns
+- **SQLite database**: 600+ trivia questions across multiple categories
+- **Google Gemini AI**: Powers the "Call a Friend" feature
+- **Modular design**: Separate managers for games, players, and lobbies
+
+### Frontend (Next.js)
+
+- **React 19 + TypeScript**: Modern, type-safe development
+- **Socket.IO client**: Real-time bidirectional communication
+- **App Router**: File-system based routing with dynamic game rooms
+- **Component-based UI**: Reusable, maintainable interface components
+- **CSS Modules**: Scoped styling for consistent design
+
+### Real-Time Communication
+
+```typescript
+// Client events
+enum ClientEvent {
+  NEW_PLAYER = "new_player",
+  JOIN_LOBBY = "join_lobby",
+  SUBMIT_ANSWER = "submit_answer",
+  USE_POWERUP = "use_powerup",
+  MESSAGE = "client_message",
+}
+
+// Server events
+enum ServerEvent {
+  LOBBY_UPDATE = "lobby_update",
+  GAME_UPDATE = "game_update",
+  NEW_GAME = "new_game",
+  MESSAGE = "server_message",
+}
 ```
 
-- **`app.py`**
-  - Initialize Flask + Flask-SocketIO server.
-  - Load `config.py`.
-  - Register socket event handlers delegating to other modules.
-- **`config.py`**
-  - Static settings (e.g. `MATCHMAKING_TIMEOUT=30`, API keys, default question durations).
-- **`matchmaking.py`**
-  - Manages a queue of waiting players.
-  - Starts a countdown on the first join; on timeout or threshold, calls `game_manager.start_game(players_list)`.
-- **`game_manager.py`**
-  - Creates a `Game` instance (in `models/game.py`).
-  - Coordinates question delivery, collects answers, computes adaptive difficulty, and tallies scores.
-  - Emits socket events: `question`, `score_update`, `game_over`.
-- **`question_provider.py`**
-  - Loads question bank from JSON or database.
-  - Exposes `get_next_question(prevCorrect: bool)` to pick question based on previous performance.
-- **`bot_player.py`**
-  - Defines `Bot` class with methods to simulate `submit_answer` events.
-  - Randomized delay and accuracy < 100%.
-  - Hooked into `game_manager` when needed.
-- **`chat.py`**
-  - Listens for `chat_message` and `emoji` events; broadcasts to game room.
-- **`helpers/llm_client.py`**
-  - Wraps calls to an LLM API (e.g., OpenAI).
-  - Method `get_call_friend_advice(question, options)` returns a short hint string.
-- **`helpers/timers.py`**
-  - Utilities for scheduling timeouts (matchmaking countdown, question timer).
-- **`models/`**
-  - **`player.py`**: fields `id`, `name`, `score`, `helpsRemaining`…
-  - **`question.py`**: fields `id`, `text`, `options`, `correctIndex`, `difficulty`.
-  - **`game.py`**: fields `id`, `players`, `currentQuestion`, `questionHistory`, `startTime`.
+## 📁 Project Structure
 
-### 3.2 Frontend
-
-```text
-frontend/
-├── src/
+```
+itr-3.2/
+├── backend/                    # Python FastAPI server
+│   ├── main.py                # Application entry point
 │   ├── app/
-│   │   ├── layout.tsx            // Root layout (replaces _app.tsx + _document.tsx)
-│   │   ├── page.tsx              // Homepage (e.g., Lobby)
-│   │   └── game/
-│   │       └── [gameId]/
-│   │           └── page.tsx      // Dynamic game page
-│   ├── components/
-│   │   ├── Lobby/
-│   │   │   ├── Lobby.tsx
-│   │   │   └── Lobby.css
-│   │   ├── Game/
-│   │   │   ├── Question.tsx
-│   │   │   ├── Scoreboard.tsx
-│   │   │   └── Leaderboard.tsx
-│   │   ├── Chat/
-│   │   │   ├── ChatBox.tsx
-│   │   │   └── EmojiPicker.tsx
-│   │   └── Shared/
-│   │       ├── Timer.tsx
-│   │       └── Button.tsx
-│   ├── contexts/
-│   │   ├── LobbyContext.tsx
-│   │   └── GameContext.tsx
-│   ├── hooks/
-│   │   └── useSocketEvent.ts
-│   ├── services/
-│   │   └── api.ts
-│   ├── styles/
-│   │   └── globals.css
-│   └── socket.ts
-├── public/
-│   └── ... static assets ...
-├── next.config.js
-└── package.json
+│   │   └── manager.py         # Central application coordinator
+│   ├── api/
+│   │   └── socket.py          # Socket.IO event handlers
+│   ├── game/
+│   │   ├── game.py            # Core game logic and phases
+│   │   ├── manager.py         # Game lifecycle management
+│   │   └── models.py          # Game state models
+│   ├── player/
+│   │   ├── player.py          # Player models and bot logic
+│   │   └── manager.py         # Player lifecycle management
+│   ├── lobby/
+│   │   └── lobby.py           # Matchmaking and lobby management
+│   ├── questions/
+│   │   ├── provider.py        # Question delivery system
+│   │   ├── models.py          # Question and category models
+│   │   └── questions.db       # SQLite database with 600+ questions
+│   ├── gemini/
+│   │   ├── gemini.py          # Google Gemini AI integration
+│   │   └── call_friend.txt    # AI prompt template
+│   └── events/
+│       ├── events.py          # Event definitions and queue
+│       └── data.py            # Event data models
+├── frontend/                   # Next.js React application
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── lobby/         # Lobby page
+│   │   │   └── game/[gameId]/ # Dynamic game rooms
+│   │   ├── components/
+│   │   │   ├── lobby/         # Lobby UI components
+│   │   │   ├── game-phases/   # Game state UI components
+│   │   │   ├── chat/          # Chat system components
+│   │   │   └── countdown/     # Timer components
+│   │   └── shared/
+│   │       ├── socket/        # Socket.IO client setup
+│   │       └── events/        # Event type definitions
+│   └── public/                # Static assets
 ```
 
-- **`src/app/layout.tsx`**: The root layout component that wraps all pages. Used for global structure, shared UI elements (like a navbar or footer if any), and initializing context providers or the Socket.IO client globally. Replaces the functionality of `pages/_app.tsx` and `pages/_document.tsx`.
-- **`src/app/page.tsx`**: The main landing page of the application. This will likely contain the Lobby UI where players join games.
-- **`src/app/game/[gameId]/page.tsx`**: A dynamic route for the game interface. Next.js file-system routing uses the folder structure within `app/` to define routes. `[gameId]` makes that part of the URL dynamic.
-- **`public/`**: Directory for static assets like images, fonts, etc., accessible from the root URL.
-- **`src/socket.ts`**
-  - Exports a singleton `socket = io(…)` for reuse.
-- **`src/contexts/LobbyContext.tsx`**
-  - Tracks lobby state: joined players list, countdown timer.
-- **`src/contexts/GameContext.tsx`**
-  - Holds game state: current question, options, timers, score, helps, chat messages.
-- **`src/hooks/useSocketEvent.ts`**
-  - Custom hook: `useSocketEvent(event, handler)` handles subscribe/unsubscribe.
-- **`src/services/api.ts`**
-  - (Optional) REST calls for preloading question bank or user profiles. Can also be handled by Next.js Server Components or Route Handlers if appropriate.
-- **`src/components/Lobby/`**
-  - **`Lobby.tsx`**: UI to join and show waiting players + countdown. This component would be imported and used within `src/app/page.tsx`.
-- **`src/components/Game/`**
-  - **`Question.tsx`**: Renders question text, options, help buttons. Triggers `socket.emit('submit_answer', …)` and `socket.emit('use_help', …)`.
-  - **`Scoreboard.tsx`**: Live updating scores.
-  - **`Leaderboard.tsx`**: Final results after 10 questions.
-    (These game-specific components would be imported and used within `src/app/game/[gameId]/page.tsx`.)
-- **`src/components/Chat/`**
-  - **`ChatBox.tsx`**: Message list + input.
-  - **`EmojiPicker.tsx`**: Small emoji selection grid.
-- **`src/components/Shared/`**
-  - **`Timer.tsx`**: Countdown timer component.
-  - **`Button.tsx`**: Styled button with loading/disabled states.
+## 🎯 Game Flow
 
-### Frontend:
+### 1. **Lobby Phase**
 
-- Build static bundle served by CDN.
-- Deploy as a Next.js application (e.g., via Vercel, or as a Node.js server).
+- Players enter their name and join the lobby
+- 30-second countdown begins when first player joins
+- Game starts when timer expires
 
-### Persistence (future):
+### 2. **Pre-Game Setup**
 
-- Store game logs in database for analytics.
+- Single players choose bot difficulty level
+- All players vote on trivia category
 
-## 8. Testing Strategy
+### 3. **Question Rounds** (10 total)
 
-- **Unit Tests**:
-  - `question_provider`, `game_manager` logic, `bot_player` behavior—no socket.
-- **Integration Tests**:
-  - Spawn a test Socket.IO server; simulate clients joining, answering, and using helps.
-- **Frontend Tests**:
-  - Jest + React Testing Library; mock `src/socket.ts` to emit and receive events. Test Next.js specific features like routing and data fetching as needed.
+- 30 seconds per question
+- Multiple choice answers with color-coded buttons
+- Power-ups available for strategic use
+- Real-time scoring based on speed and accuracy
 
-## 9. Next Steps & Extensions
+### 4. **Results & Chat**
 
-- Authentication & Profiles (persist player stats).
-- Persistent Question Store (database with categories).
-- Spectator Mode (watch ongoing games).
-- Mobile-Friendly UI and Accessibility improvements.
-- Leaderboards & Achievements across sessions.
+- Final leaderboard with detailed scores
+- Continuous chat throughout all phases
+- Option to start a new game
 
-This design balances simplicity with clear separation of concerns, allowing parallel development of backend modules and frontend components. Each module can be independently tested and extended.
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Python 3.8+** with pip
+- **Node.js 18+** with npm
+- **Google Gemini API key** (for Call a Friend feature)
+
+### Backend Setup
+
+1. **Navigate to backend directory**
+
+   ```bash
+   cd backend
+   ```
+
+2. **Create virtual environment**
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up environment variables**
+
+   ```bash
+   # Create .env file
+   echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+   ```
+
+5. **Start the server**
+   ```bash
+   python main.py
+   ```
+   Server runs on `http://localhost:8000`
+
+### Frontend Setup
+
+1. **Navigate to frontend directory**
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Start development server**
+   ```bash
+   npm run dev
+   ```
+   Application runs on `http://localhost:3000`
+
+### Quick Start
+
+1. Open `http://localhost:3000` in multiple browser tabs
+2. Enter different player names in each tab
+3. Join the lobby and wait for matchmaking
+4. Enjoy the trivia competition!
+
+## 🔧 Configuration
+
+### Game Settings
+
+Modify `backend/game/models.py` for game timing:
+
+```python
+class GamePhase(str, Enum):
+    def get_duration(self) -> int:
+        match self:
+            case GamePhase.CATEGORY_SELECTION: return 45  # seconds
+            case GamePhase.AWAITING_ANSWERS: return 30    # seconds
+            # ... other phases
+```
+
+### Bot Behavior
+
+Adjust bot accuracy in `backend/player/player.py`:
+
+```python
+class BotLevel(str, Enum):
+    def get_success_rate(self) -> float:
+        match self:
+            case BotLevel.NOVICE: return 0.2      # 20% accuracy
+            case BotLevel.INTERMEDIATE: return 0.4 # 40% accuracy
+            case BotLevel.EXPERT: return 0.6      # 60% accuracy
+```
+
+**Built with ❤️ for real-time multiplayer gaming**
