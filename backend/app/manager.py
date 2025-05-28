@@ -142,7 +142,8 @@ class AppManager:
         print("[app_manager] send_message", data)
         dest = data.destination_id if data.destination_id != "" else None
         player = self._player_manager.get_player(data.sender_id)
-        data.username = player.name
+        if player:
+            data.username = player.name
         await self.sio.emit(ServerEvent.MESSAGE, data.__dict__, to=dest)
 
     async def disconnect(self, sid: str) -> None:
